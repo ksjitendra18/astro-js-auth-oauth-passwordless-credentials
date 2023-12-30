@@ -1,0 +1,25 @@
+{
+  "name": "",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.3.1",
+    "@astrojs/tailwind": "^5.0.2",
+    "@astrojs/vercel": "^6.1.1",
+    "@libsql/client": "^0.4.0-pre.5",
+    "astro": "^4.0.8",
+    "drizzle-orm": "^0.29.2",
+    "tailwindcss": "^3.0.24",
+    "typescript": "^5.3.2"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.20.9"
+  }
+}

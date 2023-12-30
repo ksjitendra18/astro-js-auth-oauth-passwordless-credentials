@@ -1,0 +1,30 @@
+---
+import MainLayout from "../layout/main-layout.astro";
+---
+
+<MainLayout title="Sign up" description="Singup">
+  <div class="flex h-[400px] items-center justify-center flex-col">
+    <h1 class="text-3xl font-bold">Sign up</h1>
+    <div></div>
+    <a
+      href="/api/auth/google"
+      class="px-6 py-2 flex items-center justify-center rounded-md mt-5 bg-black text-white hover:scale-95 transition-all ease-in-out duration-75"
+    >
+      <span class="mr-2">
+        <img src="/google.svg" width="40px" alt="" />
+      </span>
+
+       Sign up with Google
+    </a>
+    <a
+      href="/api/auth/github"
+      class="px-6 py-2 flex items-center justify-center mt-3 mb-5 rounded-md bg-black text-white hover:scale-95 transition-all ease-in-out duration-75"
+    >
+      <span class="mr-3">
+        <img src="/github-mark-white.svg" width="40px" alt="" />
+      </span>
+
+       Sign up with Github
+    </a>
+  </div>
+</MainLayout>
