@@ -95,11 +95,14 @@ function capitalizeFirstWord(text: string) {
               {capitalizeFirstWord(log.device)}
               {capitalizeFirstWord(log.browser)}
             </div>
-            <div class="flex">
-              Logged in at:
-              {new Intl.DateTimeFormat("en-US").format(
-                new Date(log.loggedInAt!)
-              )}
+            <div class="flex gap-5 flex-col md:flex-row flex-wrap">
+              <div>IP: {log.ip}</div>
+              <div>
+                Logged in at:
+                {new Intl.DateTimeFormat("en-US").format(
+                  new Date(log.loggedInAt!)
+                )}
+              </div>
             </div>
           </div>
         ))
