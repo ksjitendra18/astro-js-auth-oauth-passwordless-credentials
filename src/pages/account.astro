@@ -1,0 +1,109 @@
+---
+import { eq, desc } from "drizzle-orm";
+
+import { db } from "../db";
+import MainLayout from "../layout/main-layout.astro";
+import { loginLogs, sessions } from "../db/schema";
+
+const sessionToken = Astro.cookies.get("app_auth_token")?.value;
+
+if (!sessionToken) {
+  return Astro.redirect("/");
+}
+const userInfo = await db.query.sessions.findFirst({
+  where: eq(sessions.id, sessionToken),
+  with: {
+    user: {
+      with: {
+        oauthTokens: {
+          columns: {
+            strategy: true,
+          },
+        },
+        loginLogs: {
+          orderBy: desc(loginLogs.loggedInAt),
+        },
+      },
+    },
+  },
+});
+
+const logs = userInfo?.user?.loginLogs.sort((a, b) =>
+  a.sessionId === sessionToken ? -1 : 1
+);
+
+function capitalizeFirstWord(text: string) {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+---
+
+<MainLayout title="Account Page" description="Account Page">
+  <h1 class="my-10 text-3xl font-bold text-center">Manage Account</h1>
+
+  <div class="flex flex-col gap-3 md:flex-row items-center">
+    <h2 class="text-xl my-3 font-semibold">Email:</h2>
+    <input
+      type="text"
+      class="border-2 border-slate-400 rounded-md px-2 py-1 w-fit"
+      name="email"
+      placeholder="Email"
+      value={userInfo?.user?.email}
+      id="email"
+      readonly
+    />
+  </div>
+
+  <a
+    href="/profile"
+    class="border-2 border-fuchsia-600 mt-5 block w-fit rounded-full px-5 py-2"
+    >Edit Profile</a
+  >
+
+  <div class="my-5">
+    <h2 class="text-xl my-3 font-semibold">Connected Accounts</h2>
+
+    <div class="flex gap-5 flex-wrap items-center">
+      {
+        userInfo?.user?.oauthTokens.map((provider) => (
+          <div class="flex border-2 w-fit border-slate-600 items-center gap-4 rounded-full px-5 py-2">
+            {provider.strategy === "github" ? (
+              <img width="30px" src="/github-mark.svg" />
+            ) : (
+              <img width="30px" src="/google.svg" />
+            )}
+            {capitalizeFirstWord(provider.strategy)}
+          </div>
+        ))
+      }
+    </div>
+  </div>
+
+  <div class="my-5">
+    <h2 class="text-xl my-3 font-semibold">Log in logs</h2>
+
+    <div class="flex flex-col gap-5">
+      {
+        logs?.map((log) => (
+          <div class="flex flex-col md:flex-row justify-between items-center bg-slate-100 shadow-md rounded-md px-3 py-2">
+            <div class="flex flex-wrap justify-center items-center gap-2">
+              {sessionToken === log.sessionId && (
+                <div class="bg-fuchsia-600 rounded-full text-white px-2 py-1 text-sm ">
+                  This Device
+                </div>
+              )}
+              {capitalizeFirstWord(log.os)}
+              {capitalizeFirstWord(log.device)}
+              {capitalizeFirstWord(log.browser)}
+            </div>
+            <div class="flex">
+              Logged in at:
+              {new Intl.DateTimeFormat("en-US").format(
+                new Date(log.loggedInAt!)
+              )}
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</MainLayout>

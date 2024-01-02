@@ -1,0 +1,96 @@
+---
+import { eq, and, gte } from "drizzle-orm";
+import MainLayout from "../layout/main-layout.astro";
+import { sessions } from "../db/schema";
+import { db } from "../db";
+
+const authToken = Astro.cookies.get("app_auth_token")?.value;
+
+if (!authToken) {
+  return Astro.redirect("/login");
+}
+
+const userInfo = await db.query.sessions.findFirst({
+  where: and(
+    eq(sessions.id, authToken),
+    gte(sessions.expiresAt, new Date().getTime())
+  ),
+  with: {
+    user: true,
+  },
+});
+---
+
+<MainLayout title="Profile" description="Profile">
+  <div class="flex mt-14 items-center justify-center flex-col">
+    <h1 class="text-3xl font-bold mb-5">Profile</h1>
+
+    <form
+      id="profile-form"
+      class="w-full max-w-2xl"
+      action="/api/profile"
+      method="post"
+    >
+      <label class="block mt-5 text-gray-600" for="email">Email</label>
+      <input
+        type="text"
+        class="border-2 border-slate-400 rounded-md px-2 py-3 w-full"
+        name="email"
+        placeholder="Email"
+        value={userInfo?.user?.email}
+        id="email"
+        readonly
+      />
+      <label class="block mt-5 text-gray-600" for="fullName">Your Name</label>
+      <input
+        type="text"
+        class="border-2 border-slate-400 rounded-md px-2 py-3 w-full"
+        name="fullName"
+        placeholder="Your Full Name"
+        value={userInfo?.user?.fullName}
+        id="fullName"
+      />
+      <label class="block mt-5 text-gray-600" for="userName">User Name</label>
+      <input
+        type="text"
+        class="border-2 border-slate-400 rounded-md px-2 py-3 w-full"
+        name="userName"
+        id="userName"
+        value={userInfo?.user?.userName}
+        placeholder="username"
+      />
+
+      <div class="flex justify-end my-5">
+        <button class="bg-blue-600 px-6 py-2 rounded-md text-white">Save</button
+        >
+      </div>
+    </form>
+  </div>
+</MainLayout>
+
+<script>
+  const profileForm = document.getElementById("profile-form");
+
+  profileForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(e.target as HTMLFormElement);
+    const name = formData.get("fullName") as string;
+
+    const res = await fetch("/api/profile", {
+      method: "POST",
+      body: formData,
+    });
+
+    const resData = await res.json();
+
+    const formUpdateStatus = document.createElement("div");
+
+    formUpdateStatus.className =
+      "status px-3 my-5 text-center w-fit rounded-md py-2 flex items-center justify-center text-white";
+
+    // if (res.status === 200) {
+    //   window.location.href = "/";
+    // }
+  });
+</script>

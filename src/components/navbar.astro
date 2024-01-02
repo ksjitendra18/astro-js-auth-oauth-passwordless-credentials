@@ -1,5 +1,5 @@
 ---
-
+const userIsLoggedIn = !!Astro.locals.userId;
 ---
 
 <header class="px-12 py-5 flex justify-between">
@@ -9,9 +9,25 @@
       <li>
         <a href="/">Home</a>
       </li>
-      <li>
-        <a href="/login">Login</a>
-      </li>
+      {
+        userIsLoggedIn ? (
+          <>
+            <li>
+              <a href="/dashboard">Dashboard</a>
+            </li>
+            <li>
+              <a href="/account">My Account</a>
+            </li>
+            <li>
+              <a href="/api/auth/logout">Logout</a>
+            </li>
+          </>
+        ) : (
+          <li>
+            <a href="/login">Login</a>
+          </li>
+        )
+      }
     </ul>
   </nav>
 </header>
