@@ -5,27 +5,38 @@ import MainLayout from "../layout/main-layout.astro";
 <MainLayout title="Log in" description="Auth in Astro">
   <div class="flex h-[400px] items-center justify-center flex-col">
     <h1 class="text-3xl font-bold">Log in</h1>
-    <div></div>
-    <a
-      href="/api/auth/google"
-      class="px-6 py-2 flex items-center justify-center rounded-md mt-5 bg-black text-white hover:scale-95 transition-all ease-in-out duration-75"
-    >
-      <span class="mr-2">
-        <img src="/google.svg" width="40px" alt="" />
-      </span>
+    <div class="flex w-full flex-col items-center justify-center">
+      <a
+        href="/api/auth/google"
+        class="px-6 py-2 w-full max-w-[400px] flex items-center justify-center rounded-md mt-5 bg-black text-white hover:scale-95 transition-all ease-in-out duration-75"
+      >
+        <span class="mr-2">
+          <img src="/google.svg" width="40px" alt="" />
+        </span>
 
-       Log in with Google
-    </a>
-    <a
-      href="/api/auth/github"
-      class="px-6 py-2 flex items-center justify-center mt-3 mb-5 rounded-md bg-black text-white hover:scale-95 transition-all ease-in-out duration-75"
-    >
-      <span class="mr-3">
-        <img src="/github-mark-white.svg" width="40px" alt="" />
-      </span>
+        Log in with Google
+      </a>
+      <a
+        href="/api/auth/github"
+        class="px-6 py-2 w-full max-w-[400px] flex items-center justify-center mt-3 rounded-md bg-black text-white hover:scale-95 transition-all ease-in-out duration-75"
+      >
+        <span class="mr-3">
+          <img src="/github-mark-white.svg" width="32px" alt="" />
+        </span>
 
-       Log in with Github
-    </a>
+        Log in with Github
+      </a>
+      <a
+        href="/login/email-password"
+        class="px-6 py-2 w-full max-w-[400px] flex items-center justify-center mt-3 rounded-md bg-black text-white hover:scale-95 transition-all ease-in-out duration-75"
+      >
+        <span class="mr-3">
+          <img src="/email.svg" width="40px" alt="" />
+        </span>
+
+        Log in with Email Password
+      </a>
+    </div>
     <p class="text-center my-5">
       Don't have an account? <a href="/signup" class="text-blue-700">Sign up</a>
     </p>
