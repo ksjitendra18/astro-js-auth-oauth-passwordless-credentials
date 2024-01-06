@@ -10,17 +10,20 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/check": "^0.3.1",
-    "@astrojs/tailwind": "^5.0.2",
-    "@astrojs/vercel": "^6.1.1",
+    "@astrojs/check": "^0.3.4",
+    "@astrojs/solid-js": "^4.0.0",
+    "@astrojs/tailwind": "^5.1.0",
+    "@astrojs/vercel": "^6.1.2",
     "@libsql/client": "^0.4.0-pre.5",
     "@paralleldrive/cuid2": "^2.2.2",
-    "astro": "^4.0.8",
+    "astro": "^4.1.0",
     "bowser": "^2.11.0",
     "drizzle-orm": "^0.29.2",
     "query-string": "^8.1.0",
+    "solid-js": "^1.8.8",
     "tailwindcss": "^3.0.24",
-    "typescript": "^5.3.2"
+    "typescript": "^5.3.2",
+    "valibot": "^0.25.0"
   },
   "devDependencies": {
     "drizzle-kit": "^0.20.9"
