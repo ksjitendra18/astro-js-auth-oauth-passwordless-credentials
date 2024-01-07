@@ -1,9 +1,10 @@
 ---
+import SignupForm from "../components/signup-form";
 import MainLayout from "../layout/main-layout.astro";
 ---
 
-<MainLayout title="Sign up" description="Singup">
-  <div class="flex h-[400px] items-center justify-center flex-col">
+<MainLayout title="Sign up" description="Sign up">
+  <div class="flex items-center justify-center flex-col">
     <h1 class="text-3xl font-bold">Sign up</h1>
     <div class="flex w-full flex-col items-center justify-center">
       <a
@@ -26,16 +27,19 @@ import MainLayout from "../layout/main-layout.astro";
 
         Sign up with Github
       </a>
-      <a
-        href="/signup/email-password"
-        class="px-6 py-2 w-full max-w-[400px] flex items-center justify-center mt-3 rounded-md bg-black text-white hover:scale-95 transition-all ease-in-out duration-75"
-      >
-        <span class="mr-3">
-          <img src="/email.svg" width="40px" alt="" />
-        </span>
 
-        Sign up with Email Password
-      </a>
+      <div
+        class="mt-5 mb-3 w-full md:w-[400px] flex items-center justify-center"
+      >
+        <div class="before-or w-[100%] h-[2px] bg-gray-300 mr-2"></div>
+        <p class="text-gray-500 or">OR</p>
+        <div class="after-or w-[100%] h-[2px] bg-gray-300 ml-2"></div>
+      </div>
+
+      <SignupForm client:load />
     </div>
+    <p class="text-center my-5">
+      Already have an account? <a href="/login" class="text-blue-700">Log in</a>
+    </p>
   </div>
 </MainLayout>
