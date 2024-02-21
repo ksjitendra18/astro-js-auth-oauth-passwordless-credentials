@@ -11,7 +11,6 @@
   },
   "dependencies": {
     "@astrojs/check": "^0.3.4",
-    "@astrojs/solid-js": "^4.0.1",
     "@astrojs/tailwind": "^5.1.0",
     "@astrojs/vercel": "^6.1.4",
     "@libsql/client": "^0.4.3",
@@ -20,7 +19,6 @@
     "bowser": "^2.11.0",
     "drizzle-orm": "^0.29.3",
     "query-string": "^8.2.0",
-    "solid-js": "^1.8.15",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.3.3"
   },

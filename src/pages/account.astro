@@ -59,24 +59,26 @@ function capitalizeFirstWord(text: string) {
     >Edit Profile</a
   >
 
-  <div class="my-5">
-    <h2 class="text-xl my-3 font-semibold">Connected Accounts</h2>
+  {
+    userInfo?.user?.oauthTokens && userInfo?.user?.oauthTokens.length > 0 && (
+      <div class="my-5">
+        <h2 class="text-xl my-3 font-semibold">Connected Accounts</h2>
 
-    <div class="flex gap-5 flex-wrap items-center">
-      {
-        userInfo?.user?.oauthTokens.map((provider) => (
-          <div class="flex border-2 w-fit border-slate-600 items-center gap-4 rounded-full px-5 py-2">
-            {provider.strategy === "github" ? (
-              <img width="30px" src="/github-mark.svg" />
-            ) : (
-              <img width="30px" src="/google.svg" />
-            )}
-            {capitalizeFirstWord(provider.strategy)}
-          </div>
-        ))
-      }
-    </div>
-  </div>
+        <div class="flex gap-5 flex-wrap items-center">
+          {userInfo?.user?.oauthTokens.map((provider) => (
+            <div class="flex border-2 w-fit border-slate-600 items-center gap-4 rounded-full px-5 py-2">
+              {provider.strategy === "github" ? (
+                <img width="30px" src="/github-mark.svg" />
+              ) : (
+                <img width="30px" src="/google.svg" />
+              )}
+              {capitalizeFirstWord(provider.strategy)}
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
 
   <div class="my-5">
     <h2 class="text-xl my-3 font-semibold">Log in logs</h2>
@@ -84,8 +86,8 @@ function capitalizeFirstWord(text: string) {
     <div class="flex flex-col gap-5">
       {
         logs?.map((log) => (
-          <div class="flex flex-col md:flex-row justify-between items-center bg-slate-100 shadow-md rounded-md px-3 py-2">
-            <div class="flex flex-wrap justify-center items-center gap-2">
+          <div class="flex flex-col lg:flex-row justify-between items-center bg-slate-100 shadow-md rounded-md px-3 py-2">
+            <div class="flex text-center flex-wrap justify-center items-center gap-2">
               {sessionToken === log.sessionId && (
                 <div class="bg-fuchsia-600 rounded-full text-white px-2 py-1 text-sm ">
                   This Device
@@ -95,7 +97,7 @@ function capitalizeFirstWord(text: string) {
               {capitalizeFirstWord(log.device)}
               {capitalizeFirstWord(log.browser)}
             </div>
-            <div class="flex gap-5 flex-col md:flex-row flex-wrap">
+            <div class="flex md:gap-5 gap-3 w-full lg:w-auto mt-2 flex-col md:flex-row flex-wrap">
               <div>IP: {log.ip}</div>
               <div>
                 Logged in at:
@@ -103,6 +105,14 @@ function capitalizeFirstWord(text: string) {
                   new Date(log.loggedInAt!)
                 )}
               </div>
+              {sessionToken !== log.sessionId && (
+                <button
+                  data-sid={log.sessionId}
+                  class="revoke-access text-red-500"
+                >
+                  Revoke Access
+                </button>
+              )}
             </div>
           </div>
         ))
@@ -110,3 +120,17 @@ function capitalizeFirstWord(text: string) {
     </div>
   </div>
 </MainLayout>
+
+<script>
+  const revokeAccessBtns = document.querySelectorAll(".revoke-access");
+
+  revokeAccessBtns.forEach((btn) => {
+    btn.addEventListener("click", async (e) => {
+      await fetch("/api/auth/revoke-access", {
+        method: "POST",
+        body: JSON.stringify({ sessionId: btn.getAttribute("data-sid") }),
+      });
+      window.location.reload();
+    });
+  });
+</script>
