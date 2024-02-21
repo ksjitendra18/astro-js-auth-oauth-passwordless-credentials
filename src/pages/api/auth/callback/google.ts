@@ -66,6 +66,7 @@ export async function GET({ request, cookies }: APIContext) {
         fullName: fetchUserRes.name,
         profilePhoto: fetchUserRes.picture,
         userName: fetchUserRes.email.split("@")[0],
+        emailVerified: true,
       });
 
       await saveOauthToken({
