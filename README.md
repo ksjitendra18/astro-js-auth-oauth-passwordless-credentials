@@ -25,7 +25,7 @@ Here are the strategies with their starter code, finished code and also the rela
 
 ## 2. Email Password Credential Based
 
-- Blog post: [Google and Github Authentication OAuth2 Setup in Astro.js](https://everythingcs.dev/blog/astro-js-email-password-credential-authentication//)
+- Blog post: [Google and Github Authentication OAuth2 Setup in Astro.js](https://everythingcs.dev/blog/astro-js-email-password-credential-authentication/)
 - Starter: [credentials-starter](https://github.com/ksjitendra18/astro-js-auth-oauth-passwordless-credentials/tree/credentials-starter)  [Direct Download](https://github.com/ksjitendra18/astro-js-auth-oauth-passwordless-credentials/archive/refs/heads/credentials-starter.zip)
 - Final: [credentials-final](https://github.com/ksjitendra18/astro-js-auth-oauth-passwordless-credentials/tree/credentials-final)  [Direct Download](https://github.com/ksjitendra18/astro-js-auth-oauth-passwordless-credentials/archive/refs/heads/credentials-final.zip)
 
