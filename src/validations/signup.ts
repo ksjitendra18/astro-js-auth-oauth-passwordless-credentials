@@ -1,22 +1,19 @@
-import {
-  email,
-  minLength,
-  object,
-  type Output,
-  parse,
-  string,
-  maxLength,
-} from "valibot";
+import { object, string } from "zod";
 
 const SignupSchema = object({
-  name: string([
-    minLength(1, "Name is required"),
-    maxLength(256, "Name should not be more than 256 characters"),
-  ]),
-  email: string([email(), minLength(1, "Email is required"), maxLength(256)]),
-  password: string([minLength(8, "Password should be more than 8 characters")]),
+  name: string({ required_error: "Name is required" })
+    .max(256, "Name should be less than 256 characters")
+    .trim(),
+  email: string({ required_error: "Email is required" })
+    .email("Please enter a valid email")
+    .trim(),
+  password: string({ required_error: "Password is required" })
+    .min(8, "Password should be more than 8 characters")
+    .trim()
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/, {
+      message:
+        "Password must contain a lowercase letter, uppercase letter, number, and symbol",
+    }),
 });
-
-export type SignupData = Output<typeof SignupSchema>;
 
 export default SignupSchema;
