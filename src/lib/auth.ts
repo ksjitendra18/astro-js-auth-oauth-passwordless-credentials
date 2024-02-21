@@ -8,6 +8,7 @@ type NewUserArgs = {
   userName: string;
   fullName: string;
   profilePhoto: string;
+  emailVerified: boolean;
 };
 
 type UserExistArgs = {
@@ -45,6 +46,7 @@ export const createUser = async ({
   fullName,
   profilePhoto,
   userName,
+  emailVerified,
 }: NewUserArgs) => {
   try {
     const newUser = await db
@@ -53,7 +55,7 @@ export const createUser = async ({
         email,
         profilePhoto,
         fullName,
-        emailVerified: true,
+        emailVerified,
         userName,
       })
       .returning({ id: users.id });

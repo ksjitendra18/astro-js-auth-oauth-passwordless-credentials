@@ -111,6 +111,7 @@ export async function GET({ request, cookies }: APIContext) {
         fullName: fetchUserRes.name,
         profilePhoto: fetchUserRes.avatar_url,
         userName: fetchUserRes.login,
+        emailVerified: true,
       });
 
       await saveOauthToken({
