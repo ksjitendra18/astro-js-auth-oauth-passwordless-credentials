@@ -20,9 +20,10 @@ const SetNewPassword = ({ id }: { id: string }) => {
     HTMLFormElement,
     SubmitEvent
   > = async (e) => {
-    setVerificationErr("");
-    setLoading(true);
     e.preventDefault();
+    setVerificationErr("");
+    setValidationIssue(null);
+    setLoading(true);
 
     try {
       const formData = new FormData(e.currentTarget);

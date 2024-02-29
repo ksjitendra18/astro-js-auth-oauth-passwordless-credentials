@@ -1,27 +1,43 @@
 import { Show, createSignal, type JSX } from "solid-js";
+import { z } from "zod";
+import EmailSchema from "../validations/email";
 
 const ResetPasswordForm = () => {
   const [verificationErr, setVerificationErr] = createSignal("");
   const [verificationMsg, setVerificationMsg] = createSignal("");
   const [loading, setLoading] = createSignal(false);
 
+  const [validationIssue, setValidationIssue] =
+    createSignal<z.ZodFormattedError<
+      z.infer<typeof EmailSchema>,
+      string
+    > | null>(null);
+
   const handleSubmit: JSX.EventHandlerUnion<
     HTMLFormElement,
     SubmitEvent
   > = async (e) => {
+    e.preventDefault();
     setVerificationErr("");
     setVerificationMsg("");
+    setValidationIssue(null);
     setLoading(true);
-    e.preventDefault();
 
     try {
       const formData = new FormData(e.currentTarget);
       const email = formData.get("email") as string;
 
+      const safeParsedData = EmailSchema.safeParse(email);
+
+      if (!safeParsedData.success) {
+        setValidationIssue(safeParsedData.error.format());
+        return;
+      }
+
       const res = await fetch("/api/auth/password-reset-mail", {
         method: "POST",
         body: JSON.stringify({
-          email,
+          email: safeParsedData.data,
         }),
       });
 
@@ -64,7 +80,15 @@ const ResetPasswordForm = () => {
           </button>
         </form>
 
-        {/* <div>Didn't receive the code? Retry again</div> */}
+        <Show when={validationIssue()}>
+          {validationIssue()?._errors.map((err) => (
+            <>
+              <div class="bg-red-500 text-white px-3 py-2 rounded-md my-3">
+                {err}
+              </div>
+            </>
+          ))}
+        </Show>
 
         <Show when={verificationErr()}>
           <div class="bg-red-500 text-white px-3 py-2 rounded-md my-3">
