@@ -3,10 +3,27 @@ import { eq } from "drizzle-orm";
 import { db } from "../../../db";
 import { users } from "../../../db/schema";
 import redis from "../../../lib/redis";
+import EmailVerificationSchema from "../../../validations/email-verification";
 
 export async function POST({ request }: APIContext) {
   const { id, code } = await request.json();
+
   try {
+    const parsedData = EmailVerificationSchema.safeParse({
+      id,
+      code,
+    });
+
+    if (!parsedData.success) {
+      return Response.json(
+        {
+          error: "validation_error",
+          message: parsedData.error.format(),
+        },
+        { status: 400 }
+      );
+    }
+
     const data: string | null = await redis.get(id);
 
     if (!data) {

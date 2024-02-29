@@ -1,9 +1,8 @@
 import { Show, createSignal, type JSX } from "solid-js";
 import { z } from "zod";
-import type EmailSchema from "../validations/email";
+import EmailSchema from "../validations/email";
 const VerificationEmailForm = () => {
   const [verificationErr, setVerificationErr] = createSignal("");
-  const [verificationSuccess, setVerificationSuccess] = createSignal(false);
   const [loading, setLoading] = createSignal(false);
 
   const [validationIssue, setValidationIssue] =
@@ -16,18 +15,26 @@ const VerificationEmailForm = () => {
     HTMLFormElement,
     SubmitEvent
   > = async (e) => {
-    setVerificationErr("");
-    setLoading(true);
     e.preventDefault();
+    setVerificationErr("");
+    setValidationIssue(null);
+    setLoading(true);
 
     try {
       const formData = new FormData(e.currentTarget);
       const email = formData.get("email") as string;
 
+      const safeParsedData = EmailSchema.safeParse(email);
+
+      if (!safeParsedData.success) {
+        setValidationIssue(safeParsedData.error.format());
+        return;
+      }
+
       const res = await fetch("/api/auth/verification-mail", {
         method: "POST",
         body: JSON.stringify({
-          email,
+          email: safeParsedData.data,
         }),
       });
 
@@ -42,7 +49,11 @@ const VerificationEmailForm = () => {
         return;
       }
 
-      window.location.href = `/verify/${resData.data.verificationId}`;
+      if (resData.data.verificationId) {
+        window.location.href = `/verify/${resData.data.verificationId}`;
+      } else {
+        setVerificationErr("Internal server error. Please try again");
+      }
     } catch (error) {
       setVerificationErr("Unable to verify. Please try again later");
     } finally {
@@ -86,11 +97,6 @@ const VerificationEmailForm = () => {
         <Show when={verificationErr()}>
           <div class="bg-red-500 text-white px-3 py-2 rounded-md my-3">
             {verificationErr()}
-          </div>
-        </Show>
-        <Show when={verificationSuccess()}>
-          <div class="bg-green-600 text-white px-3 py-2 rounded-md my-3">
-            <p>Verification Success. Now you can login</p>
           </div>
         </Show>
       </div>
