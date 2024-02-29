@@ -1,32 +1,42 @@
 import { Show, createSignal, type JSX } from "solid-js";
+import type { z } from "zod";
+import EmailVerificationSchema from "../validations/email-verification";
 
 const VerifyEmailCode = ({ id }: { id: string }) => {
   const [verificationErr, setVerificationErr] = createSignal("");
   const [verificationSuccess, setVerificationSuccess] = createSignal(false);
   const [loading, setLoading] = createSignal(false);
 
+  const [validationIssue, setValidationIssue] =
+    createSignal<z.ZodFormattedError<
+      z.infer<typeof EmailVerificationSchema>,
+      string
+    > | null>(null);
+
   const handleSubmit: JSX.EventHandlerUnion<
     HTMLFormElement,
     SubmitEvent
   > = async (e) => {
+    e.preventDefault();
     setVerificationErr("");
     setLoading(true);
-    e.preventDefault();
-
+    setValidationIssue(null);
     try {
       const formData = new FormData(e.currentTarget);
       const enteredCode = formData.get("code") as string;
 
-      if (enteredCode && enteredCode.length != 6) {
-        setVerificationErr("Please enter a valid code");
+      const safeParsedData = EmailVerificationSchema.safeParse({
+        id,
+        code: enteredCode,
+      });
+
+      if (!safeParsedData.success) {
+        setValidationIssue(safeParsedData.error.format());
         return;
       }
       const res = await fetch("/api/auth/verify-email", {
         method: "POST",
-        body: JSON.stringify({
-          id,
-          code: enteredCode,
-        }),
+        body: JSON.stringify(safeParsedData.data),
       });
 
       const resData = await res.json();
@@ -83,6 +93,16 @@ const VerifyEmailCode = ({ id }: { id: string }) => {
             Retry again
           </a>
         </div>
+
+        <Show when={validationIssue()}>
+          {validationIssue()?._errors.map((err) => (
+            <>
+              <div class="bg-red-500 text-white px-3 py-2 rounded-md my-3">
+                {err}
+              </div>
+            </>
+          ))}
+        </Show>
 
         <Show when={verificationErr()}>
           <div class="bg-red-500 text-white px-3 py-2 rounded-md my-3">

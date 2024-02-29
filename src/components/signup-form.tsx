@@ -47,6 +47,9 @@ const SignupForm = () => {
       if (res.status === 201) {
         return window.location.replace(`/verify/${resData.data.id}`);
       } else {
+        if (resData && resData.error === "validation_error") {
+          setValidationIssue(resData.message);
+        }
         setError(resData.message);
       }
     } catch (error) {
