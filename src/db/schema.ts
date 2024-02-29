@@ -1,4 +1,4 @@
-import { createId } from "@paralleldrive/cuid2";
+import { createId, init } from "@paralleldrive/cuid2";
 import { relations, sql } from "drizzle-orm";
 import {
   integer,
@@ -6,6 +6,12 @@ import {
   sqliteTable,
   text,
 } from "drizzle-orm/sqlite-core";
+import { customAlphabet } from "nanoid";
+
+const createSessionId = customAlphabet(
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz_-",
+  48
+);
 
 export const users = sqliteTable("users", {
   id: text("id")
@@ -27,6 +33,7 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   oauthTokens: many(oauthTokens),
   sessions: many(sessions),
   loginLogs: many(loginLogs),
+  passwords: one(passwords),
 }));
 
 export const oauthTokens = sqliteTable(
@@ -56,7 +63,7 @@ export const oauthTokenRelations = relations(oauthTokens, ({ one }) => ({
 
 export const sessions = sqliteTable("sessions", {
   id: text("id")
-    .$default(() => createId())
+    .$default(() => createSessionId())
     .primaryKey(),
   userId: text("userId").references(() => users.id, { onDelete: "cascade" }),
   expiresAt: integer("expires_at").notNull(),
@@ -75,7 +82,7 @@ export const loginLogs = sqliteTable("login_logs", {
     .$default(() => createId())
     .primaryKey(),
   sessionId: text("session_id").references(() => sessions.id, {
-    onDelete: "set null",
+    onDelete: "cascade",
   }),
   userId: text("user_id").references(() => users.id, {
     onDelete: "cascade",
@@ -96,5 +103,21 @@ export const loginLogsRelations = relations(loginLogs, ({ one }) => ({
   session: one(sessions, {
     fields: [loginLogs.sessionId],
     references: [sessions.id],
+  }),
+}));
+
+export const passwords = sqliteTable("passwords", {
+  userId: text("user_id")
+    .references(() => users.id, {
+      onDelete: "cascade",
+    })
+    .primaryKey(),
+  password: text("password").notNull(),
+});
+
+export const passwordRelations = relations(passwords, ({ one }) => ({
+  user: one(users, {
+    fields: [passwords.userId],
+    references: [users.id],
   }),
 }));

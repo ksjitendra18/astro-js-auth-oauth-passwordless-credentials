@@ -1,0 +1,8 @@
+---
+import VerifyEmailCode from "../../components/verify-email-code";
+import MainLayout from "../../layout/main-layout.astro";
+---
+
+<MainLayout title="Verify" description="Verify">
+  <VerifyEmailCode client:load id={Astro.params.verificationId!} />
+</MainLayout>

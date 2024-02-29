@@ -1,9 +1,16 @@
 import { Show, createSignal, type JSX } from "solid-js";
-
+import { z } from "zod";
+import type EmailSchema from "../validations/email";
 const VerificationEmailForm = () => {
   const [verificationErr, setVerificationErr] = createSignal("");
   const [verificationSuccess, setVerificationSuccess] = createSignal(false);
   const [loading, setLoading] = createSignal(false);
+
+  const [validationIssue, setValidationIssue] =
+    createSignal<z.ZodFormattedError<
+      z.infer<typeof EmailSchema>,
+      string
+    > | null>(null);
 
   const handleSubmit: JSX.EventHandlerUnion<
     HTMLFormElement,
@@ -27,7 +34,11 @@ const VerificationEmailForm = () => {
       const resData = await res.json();
 
       if (res.status !== 200) {
-        setVerificationErr(resData.message);
+        if (resData && resData.error === "validation_error") {
+          setValidationIssue(resData.message);
+        } else {
+          setVerificationErr(resData.message);
+        }
         return;
       }
 
@@ -63,8 +74,15 @@ const VerificationEmailForm = () => {
           </button>
         </form>
 
-        {/* <div>Didn't receive the code? Retry again</div> */}
-
+        <Show when={validationIssue()}>
+          {validationIssue()?._errors.map((err) => (
+            <>
+              <div class="bg-red-500 text-white px-3 py-2 rounded-md my-3">
+                {err}
+              </div>
+            </>
+          ))}
+        </Show>
         <Show when={verificationErr()}>
           <div class="bg-red-500 text-white px-3 py-2 rounded-md my-3">
             {verificationErr()}

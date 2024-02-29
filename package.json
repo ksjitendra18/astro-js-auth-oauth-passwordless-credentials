@@ -16,9 +16,12 @@
     "@astrojs/vercel": "^6.1.4",
     "@libsql/client": "^0.4.3",
     "@paralleldrive/cuid2": "^2.2.2",
+    "@upstash/redis": "^1.28.4",
     "astro": "^4.4.1",
+    "bcryptjs": "^2.4.3",
     "bowser": "^2.11.0",
     "drizzle-orm": "^0.29.3",
+    "nanoid": "^5.0.6",
     "query-string": "^8.2.0",
     "solid-js": "^1.8.15",
     "tailwindcss": "^3.4.1",
@@ -26,6 +29,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
     "drizzle-kit": "^0.20.14"
   }
 }
