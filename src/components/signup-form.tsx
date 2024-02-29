@@ -30,20 +30,12 @@ const SignupForm = () => {
     const password = formData.get("password");
 
     try {
-      // const safeParsedData = SignupSchema.safeParse({ name, email, password });
+      const safeParsedData = SignupSchema.safeParse({ name, email, password });
 
-      // if (!safeParsedData.success) {
-      //   setValidationIssue(safeParsedData.error.format());
-      //   return;
-      // }
-
-      const safeParsedData = {
-        data: {
-          name,
-          email,
-          password,
-        },
-      };
+      if (!safeParsedData.success) {
+        setValidationIssue(safeParsedData.error.format());
+        return;
+      }
 
       const res = await fetch("/api/auth/signup", {
         method: "POST",
