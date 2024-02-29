@@ -17,7 +17,7 @@ const VerifyEmailCode = ({ id }: { id: string }) => {
       const formData = new FormData(e.currentTarget);
       const enteredCode = formData.get("code") as string;
 
-      if (enteredCode && enteredCode.length < 8) {
+      if (enteredCode && enteredCode.length != 6) {
         setVerificationErr("Please enter a valid code");
         return;
       }
