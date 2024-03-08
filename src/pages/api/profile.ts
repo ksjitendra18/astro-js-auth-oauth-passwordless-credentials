@@ -20,7 +20,7 @@ export async function POST({ request, cookies }: APIContext) {
       );
     }
 
-    const userInfo = await db.query.sessions.findFirst({
+    const sessionInfo = await db.query.sessions.findFirst({
       where: and(
         eq(sessions.id, authToken),
         gte(sessions.expiresAt, new Date().getTime())
@@ -30,7 +30,7 @@ export async function POST({ request, cookies }: APIContext) {
       },
     });
 
-    if (!userInfo) {
+    if (!sessionInfo || !sessionInfo.user) {
       return Response.json(
         { error: "authorization_error", message: "Log in" },
         {
@@ -45,7 +45,7 @@ export async function POST({ request, cookies }: APIContext) {
         fullName: fullName as string,
         userName: userName as string,
       })
-      .where(eq(users.id, userInfo.id));
+      .where(eq(users.id, sessionInfo.id));
 
     return Response.json(
       { success: true, message: "Profile Updated Sucessfully" },
