@@ -25,14 +25,16 @@ Here are the strategies with their starter code, finished code and also the rela
 
 ## 2. Email Password Credential Based
 
-- Blog post: [Google and Github Authentication OAuth2 Setup in Astro.js](https://everythingcs.dev/blog/astro-js-email-password-credential-authentication/)
+- Blog post: [Email Password Credential authentication Setup in Astro.js](https://everythingcs.dev/blog/astro-js-email-password-credential-authentication/)
 - Starter: [credentials-starter](https://github.com/ksjitendra18/astro-js-auth-oauth-passwordless-credentials/tree/credentials-starter)  [Direct Download](https://github.com/ksjitendra18/astro-js-auth-oauth-passwordless-credentials/archive/refs/heads/credentials-starter.zip)
 - Final: [credentials-final](https://github.com/ksjitendra18/astro-js-auth-oauth-passwordless-credentials/tree/credentials-final)  [Direct Download](https://github.com/ksjitendra18/astro-js-auth-oauth-passwordless-credentials/archive/refs/heads/credentials-final.zip)
 
 ## 3. Passwordless (Magic Link) Auth
 
-PLANNED
+- Blog post: [Passwordless Magic Link Authentication Setup in Astro.js](https://everythingcs.dev/blog/astro-js-passwordless-magic-link-authentication/)
+- Starter: [magic-link-starter](https://github.com/ksjitendra18/astro-js-auth-oauth-passwordless-credentials/tree/credentials-starter)  [Direct Download](https://github.com/ksjitendra18/astro-js-auth-oauth-passwordless-credentials/archive/refs/heads/magic-link-starter.zip)
+- Final: [magic-link-final](https://github.com/ksjitendra18/astro-js-auth-oauth-passwordless-credentials/tree/magic-link-final)  [Direct Download](https://github.com/ksjitendra18/astro-js-auth-oauth-passwordless-credentials/archive/refs/heads/magic-link-final.zip)
 
-## 4. Integrating 2-Factor Auth
+## 4. Integrating Multi-Factor Auth
 
-PLANNED
+Upcoming

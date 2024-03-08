@@ -384,3 +384,93 @@ export const sendPasswordResetMail = async ({
     throw new Error("Error while sending mail");
   }
 };
+
+export const sendMagicLink = async ({
+  email,
+  url,
+}: {
+  email: string;
+  url: string;
+}) => {
+  const verificationId = generateVerificationId();
+
+  try {
+    const lastEmailSentTime: number | null = await redis.get(
+      `${email}:ml_sent`
+    );
+
+    if (lastEmailSentTime) {
+      return {
+        waitTime:
+          10 - Math.floor((new Date().getTime() - lastEmailSentTime) / 60000),
+      };
+    }
+
+    const emailSentCount: number | null = await redis.get(`${email}:ml_count`);
+
+    if (emailSentCount == null || emailSentCount > 0) {
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: "astro-auth@auth-noreply-alpha.rdrto.xyz",
+          to: email,
+          subject: `Log in to Astro Auth`,
+          html: `<div>Log in as ${email} </div>
+          <a href="${url}/magic-link/${verificationId}">Log in</a>
+          <div>The link is valid for 2 hours</div>
+          <div>You have received this email because you or someone tried to signup on the website </div>
+          <div>If you didn't signup, kindly ignore this email.</div>
+          <div>For support contact us at contact[at]example.com</div>
+          `,
+        }),
+      });
+
+      if (res.ok) {
+        const verificationIdPromise = redis.set(verificationId, email, {
+          ex: 7200,
+        });
+
+        let emailCountPromise;
+
+        if (emailSentCount === null) {
+          emailCountPromise = redis.set(`${email}:ml_count`, 4, {
+            ex: 86400,
+          });
+        } else {
+          emailCountPromise = redis.decr(`${email}:ml_count`);
+        }
+
+        const emailSentPromise = redis.set(
+          `${email}:ml_sent`,
+          new Date().getTime(),
+          {
+            ex: 600,
+          }
+        );
+
+        const [res1, res2, res3] = await Promise.all([
+          verificationIdPromise,
+          emailCountPromise,
+          emailSentPromise,
+        ]);
+
+        if (res1 && res2 && res3) {
+          return { verificationId };
+        } else {
+          throw new Error("Error while sending mail");
+        }
+      } else {
+        throw new Error("Error while sending mail");
+      }
+    } else {
+      return { emailSendLimit: true };
+    }
+  } catch (error) {
+    console.log("error while sending mail", error);
+    throw new Error("Error while sending mail");
+  }
+};

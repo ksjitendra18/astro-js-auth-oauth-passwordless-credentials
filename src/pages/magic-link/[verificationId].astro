@@ -1,0 +1,138 @@
+---
+import { eq } from "drizzle-orm";
+import { db } from "../../db/index";
+import { users } from "../../db/schema";
+import MainLayout from "../../layout/main-layout.astro";
+import { createLoginLog, createSession } from "../../lib/auth";
+import redis from "../../lib/redis";
+import EmailSchema from "../../validations/email";
+let isBlocked = false;
+let serverError = false;
+let error = false;
+let success = false;
+const validLink = await redis.get(Astro.params.verificationId!);
+
+if (!validLink) {
+  error = true;
+} else {
+  const parsedData = EmailSchema.safeParse(validLink);
+
+  if (!parsedData.success) {
+    error = true;
+    return;
+  }
+  success = true;
+
+  try {
+    const userExists = await db.query.users.findFirst({
+      where: eq(users.email, parsedData.data),
+      columns: { id: true, isBlocked: true },
+    });
+
+    if (userExists) {
+      const { sessionId, expiresAt } = await createSession({
+        userId: userExists.id,
+      });
+
+      await createLoginLog({
+        sessionId,
+        userAgent: Astro.request.headers.get("user-agent"),
+        userId: userExists.id,
+        ip: Astro.request.headers.get("x-real-ip") ?? "dev",
+      });
+
+      Astro.cookies.set("app_auth_token", sessionId, {
+        path: "/",
+        httpOnly: true,
+        sameSite: "lax",
+        expires: expiresAt,
+        secure: import.meta.env.PROD,
+      });
+
+      await redis.del(Astro.params.verificationId!);
+
+      return Astro.redirect("/dashboard");
+    } else {
+      console.log("creating user....");
+      const newUser = await db
+        .insert(users)
+        .values({
+          email: validLink as string,
+          emailVerified: true,
+        })
+        .returning({ id: users.id });
+
+      const { sessionId, expiresAt } = await createSession({
+        userId: newUser[0].id,
+      });
+
+      await createLoginLog({
+        sessionId,
+        userAgent: Astro.request.headers.get("user-agent"),
+        userId: newUser[0].id,
+        ip: Astro.request.headers.get("x-real-ip") ?? "dev",
+      });
+      await redis.del(Astro.params.verificationId!);
+      Astro.cookies.set("app_auth_token", sessionId, {
+        path: "/",
+        httpOnly: true,
+        sameSite: "lax",
+        expires: expiresAt,
+        secure: import.meta.env.PROD,
+      });
+
+      console.log("cookie set...");
+
+      return Astro.redirect("/profile");
+    }
+  } catch (error) {
+    console.log("Error in verifying magic link", error);
+    serverError = true;
+  }
+}
+---
+
+<MainLayout title="Magic Link" description="Log in via magic link">
+  {
+    error && (
+      <div class="my-10 flex items-center justify-center flex-col">
+        <h2 class="text-3xl text-center font-bold">Invalid Link</h2>
+
+        <p class="my-2">
+          The link is invalid or expired. Please re-generate a new link.
+        </p>
+        <a
+          href="/magic-link"
+          class="px-5 py-2 my-5 bg-blue-600 text-white rounded-md"
+        >
+          Generate New Link
+        </a>
+      </div>
+    )
+  }
+
+  {
+    success && (
+      <div class="my-10 flex flex-col items-center justify-center">
+        <h2 class="text-3xl text-center font-bold">Login Success</h2>
+        <p class="my-2">Redirecting...</p>
+      </div>
+    )
+  }
+  {
+    isBlocked && (
+      <div class="my-10 flex flex-col items-center justify-center">
+        <h2 class="text-3xl text-center font-bold">Access Restricted</h2>
+        <p class="my-2">Please contact support</p>
+      </div>
+    )
+  }
+  {
+    serverError && (
+      <div class="my-10 flex flex-col items-center justify-center">
+        <h2 class="text-3xl text-center font-bold">Server Error</h2>
+        <p class="my-2">Please try again later.</p>
+      </div>
+    )
+  }
+</MainLayout>
