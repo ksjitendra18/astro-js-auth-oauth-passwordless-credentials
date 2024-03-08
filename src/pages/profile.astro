@@ -89,8 +89,8 @@ const userInfo = await db.query.sessions.findFirst({
     formUpdateStatus.className =
       "status px-3 my-5 text-center w-fit rounded-md py-2 flex items-center justify-center text-white";
 
-    // if (res.status === 200) {
-    //   window.location.href = "/";
-    // }
+    if (res.status === 200) {
+      window.location.href = "/account";
+    }
   });
 </script>
