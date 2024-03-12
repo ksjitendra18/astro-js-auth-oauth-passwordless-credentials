@@ -7,6 +7,9 @@ export async function GET({ cookies }: APIContext) {
 
   cookies.set("github_oauth_state", githubOauthState, {
     path: "/",
+    httpOnly: true,
+    sameSite: "lax",
+    secure: import.meta.env.PROD,
   });
 
   const authorizationUrl = queryString.stringifyUrl({
