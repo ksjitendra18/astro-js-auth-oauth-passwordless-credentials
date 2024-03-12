@@ -131,8 +131,8 @@ export async function GET({ request, cookies }: APIContext) {
         ip: request.headers.get("x-real-ip") ?? "dev",
       });
 
-      cookies.delete("google_oauth_state");
-      cookies.delete("google_code_challenge");
+      cookies.delete("google_oauth_state", { path: "/" });
+      cookies.delete("google_code_challenge", { path: "/" });
 
       cookies.set("app_auth_token", sessionId, {
         path: "/",
@@ -150,8 +150,8 @@ export async function GET({ request, cookies }: APIContext) {
       });
     }
   } catch (error) {
-    cookies.delete("google_oauth_state");
-    cookies.delete("google_code_challenge");
+    cookies.delete("google_oauth_state", { path: "/" });
+    cookies.delete("google_code_challenge", { path: "/" });
     return new Response(null, {
       status: 302,
       headers: {
