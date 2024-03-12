@@ -10,6 +10,9 @@ export async function GET({ cookies }: APIContext) {
 
   cookies.set("google_oauth_state", googleOauthState, {
     path: "/",
+    httpOnly: true,
+    sameSite: "lax",
+    secure: import.meta.env.PROD,
   });
 
   const googleCodeChallenge = generateId();
@@ -19,6 +22,9 @@ export async function GET({ cookies }: APIContext) {
 
   cookies.set("google_code_challenge", googleCodeChallenge, {
     path: "/",
+    httpOnly: true,
+    sameSite: "lax",
+    secure: import.meta.env.PROD,
   });
 
   const authorizationUrl = queryString.stringifyUrl({

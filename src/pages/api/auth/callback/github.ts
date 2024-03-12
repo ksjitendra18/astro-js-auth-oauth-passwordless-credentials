@@ -178,13 +178,18 @@ export async function GET({ request, cookies }: APIContext) {
 
     cookies.delete("github_oauth_state", { path: "/" });
 
+    cookies.set("app_auth_token", sessionId, {
+      path: "/",
+      httpOnly: true,
+      expires: expiresAt,
+      secure: import.meta.env.PROD,
+      sameSite: "lax",
+    });
+
     return new Response(null, {
       status: 302,
       headers: {
         Location: "/",
-        "Set-Cookie": `app_auth_token=${sessionId}; Path=/; HttpOnly; SameSite=Lax;Expires=${expiresAt.toUTCString()}; Secure=${
-          import.meta.env.PROD
-        }`,
       },
     });
   } catch (error) {

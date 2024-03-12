@@ -6,14 +6,14 @@ This repo is for the series of blog post covering Authentication in Astro.
 
 - Turso DB
 - Drizzle ORM
-- Redis for storing verification codes
+- Redis for storing verification codes and rate limiting
 - Resend for sending emails
 - Solid.js
 - Zod
 - Database session strategy for auth persistence
 - Bcrypt for password encryption
 
-I am not using any external auth library for this guide. At the moment of writing Auth.js doesn't support Astro. In a separate blog I will do all these authentication strategy through Lucia Auth.
+I am not using any external auth library for this guide. At the moment of writing, Auth.js doesn't support Astro. In a separate blog post I will do all these authentication strategy through Lucia Auth.
 
 Here are the strategies with their starter code, finished code and also the related blog post.
 
@@ -35,6 +35,11 @@ Here are the strategies with their starter code, finished code and also the rela
 - Starter: [magic-link-starter](https://github.com/ksjitendra18/astro-js-auth-oauth-passwordless-credentials/tree/credentials-starter)  [Direct Download](https://github.com/ksjitendra18/astro-js-auth-oauth-passwordless-credentials/archive/refs/heads/magic-link-starter.zip)
 - Final: [magic-link-final](https://github.com/ksjitendra18/astro-js-auth-oauth-passwordless-credentials/tree/magic-link-final)  [Direct Download](https://github.com/ksjitendra18/astro-js-auth-oauth-passwordless-credentials/archive/refs/heads/magic-link-final.zip)
 
-## 4. Integrating Multi-Factor Auth
+## 4. Integrating Two-Factor Auth
 
-Upcoming
+Integration of TOTP based verification along with recovery codes.
+
+- Blog post: [Two-Factor Authentication and Recovery Code Setup in Astro.js](https://everythingcs.dev/blog/astro-js-two-multi-factor-authentication-totp-recovery-codes/)
+- Starter: [two-factor-starter](https://github.com/ksjitendra18/astro-js-auth-oauth-passwordless-credentials/tree/credentials-starter)  [Direct Download](https://github.com/ksjitendra18/astro-js-auth-oauth-passwordless-credentials/archive/refs/heads/two-factor-starter.zip)
+- Final: [two-factor-final](https://github.com/ksjitendra18/astro-js-auth-oauth-passwordless-credentials/tree/two-factor-final)  [Direct Download](https://github.com/ksjitendra18/astro-js-auth-oauth-passwordless-credentials/archive/refs/heads/two-factor-final.zip)
+  
