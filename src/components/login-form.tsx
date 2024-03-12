@@ -56,6 +56,12 @@ const LoginForm = () => {
         setError(resData.message);
       }
 
+      if (res.status === 302) {
+        window.location.href = resData
+          ? resData.redirect
+          : "/verify-two-factor";
+        return;
+      }
       if (res.status === 200) {
         window.location.replace("/dashboard");
       }
