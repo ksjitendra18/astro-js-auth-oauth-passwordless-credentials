@@ -40,24 +40,52 @@ function capitalizeFirstWord(text: string) {
 <MainLayout title="Account Page" description="Account Page">
   <h1 class="my-10 text-3xl font-bold text-center">Manage Account</h1>
 
-  <div class="flex flex-col gap-3 md:flex-row items-center">
-    <h2 class="text-xl my-3 font-semibold">Email:</h2>
-    <input
-      type="text"
-      class="border-2 border-slate-400 rounded-md px-2 py-1 w-fit"
-      name="email"
-      placeholder="Email"
-      value={userInfo?.user?.email}
-      id="email"
-      readonly
-    />
+  <div
+    class="border-2 border-sky-600 mt-5 flex items-center gap-3 w-fit rounded-full"
+  >
+    <p class="bg-sky-600 rounded-l-full px-5 py-2 text-white">Email</p>
+    <p class="px-5 py-2">{userInfo?.user?.email}</p>
   </div>
 
-  <a
-    href="/profile"
-    class="border-2 border-fuchsia-600 mt-5 block w-fit rounded-full px-5 py-2"
-    >Edit Profile</a
-  >
+  <div class="flex items-center gap-2 md:gap-5 flex-wrap">
+    <div
+      class="border-2 border-fuchsia-600 mt-5 flex items-center gap-3 w-fit rounded-full"
+    >
+      <p class="bg-fuchsia-600 rounded-l-full px-5 py-2 text-white">Profile</p>
+      <a class="px-5 py-2" href="/profile">Edit Profile</a>
+    </div>
+    {
+      userInfo?.user?.twoFactorEnabled ? (
+        <>
+          <div class="border-2 border-emerald-600 mt-5 flex items-center gap-3 w-fit rounded-full ">
+            <p class="bg-emerald-600 rounded-l-full px-5 py-2 text-white">
+              Multi factor Enabled
+            </p>
+            <a class="px-5 py-2" href="/two-factor">
+              Re Configure
+            </a>
+          </div>
+          <div class="border-2 border-lime-600 mt-5 flex items-center gap-3 w-fit rounded-full ">
+            <p class="bg-lime-600 rounded-l-full px-5 py-2 text-white">
+              Recovery Code
+            </p>
+            <a class="px-5 py-2" href="/recovery-code">
+              View
+            </a>
+          </div>
+        </>
+      ) : (
+        <div class="border-2 border-red-600 mt-5 flex items-center gap-3 w-fit rounded-full ">
+          <p class="bg-red-600 rounded-l-full px-5 py-2 text-white">
+            Two factor Disabled
+          </p>
+          <a class="px-5 py-2" href="/two-factor">
+            Set up
+          </a>
+        </div>
+      )
+    }
+  </div>
 
   {
     userInfo?.user?.oauthTokens && userInfo?.user?.oauthTokens.length > 0 && (
@@ -122,6 +150,7 @@ function capitalizeFirstWord(text: string) {
 </MainLayout>
 
 <script>
+  
   const revokeAccessBtns = document.querySelectorAll(".revoke-access");
 
   revokeAccessBtns.forEach((btn) => {
