@@ -3,10 +3,14 @@ import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { db } from "../../../db";
 import { passwords, users } from "../../../db/schema";
-import { createLoginLog, createSession } from "../../../lib/auth";
+import {
+  create2FASession,
+  createLoginLog,
+  createSession,
+} from "../../../lib/auth";
 import LoginSchema from "../../../validations/login";
 
-export async function POST({ request }: APIContext) {
+export async function POST({ request, cookies }: APIContext) {
   try {
     const { email, password }: { email: string; password: string } =
       await request.json();
@@ -47,6 +51,24 @@ export async function POST({ request }: APIContext) {
           message: "Incorrect email or password",
         },
         { status: 401 }
+      );
+    }
+
+    if (userExists.twoFactorEnabled) {
+      const faSess = await create2FASession(userExists.id);
+
+      cookies.set("2fa_auth", faSess, {
+        path: "/",
+        httpOnly: true,
+        sameSite: "lax",
+        secure: import.meta.env.PROD,
+      });
+
+      return Response.json(
+        { message: "2FA required", redirect: "/verify-two-factor" },
+        {
+          status: 302,
+        }
       );
     }
 

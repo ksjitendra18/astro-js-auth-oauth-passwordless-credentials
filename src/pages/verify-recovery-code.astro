@@ -1,0 +1,24 @@
+---
+import MainLayout from "../layout/main-layout.astro";
+import RecoveryCodeVerifyForm from "../components/recovery-code-verify-form";
+import redis from "../lib/redis";
+
+const twoFaSess = Astro.cookies.get("2fa_auth")?.value;
+
+if (!twoFaSess) {
+  return Astro.redirect("/login");
+}
+
+const userId = await redis.get(`2fa_auth:${twoFaSess}`);
+
+if (!userId) {
+  return Astro.redirect("/login");
+}
+---
+
+<MainLayout
+  title="Recovery Code Verification"
+  description="Recovery Code Verification"
+>
+  <RecoveryCodeVerifyForm client:load />
+</MainLayout>

@@ -3,7 +3,11 @@ import { eq } from "drizzle-orm";
 import { db } from "../../db/index";
 import { users } from "../../db/schema";
 import MainLayout from "../../layout/main-layout.astro";
-import { createLoginLog, createSession } from "../../lib/auth";
+import {
+  create2FASession,
+  createLoginLog,
+  createSession,
+} from "../../lib/auth";
 import redis from "../../lib/redis";
 import EmailSchema from "../../validations/email";
 let isBlocked = false;
@@ -26,10 +30,20 @@ if (!validLink) {
   try {
     const userExists = await db.query.users.findFirst({
       where: eq(users.email, parsedData.data),
-      columns: { id: true, isBlocked: true },
+      columns: { id: true, isBlocked: true, twoFactorEnabled: true },
     });
 
     if (userExists) {
+      if (userExists.twoFactorEnabled) {
+        const faSess = await create2FASession(userExists.id);
+
+        Astro.cookies.set("2fa_auth", faSess, {
+          path: "/",
+          httpOnly: true,
+          secure: import.meta.env.PROD,
+        });
+        return Astro.redirect("/two-factor");
+      }
       const { sessionId, expiresAt } = await createSession({
         userId: userExists.id,
       });
@@ -53,7 +67,6 @@ if (!validLink) {
 
       return Astro.redirect("/dashboard");
     } else {
-      console.log("creating user....");
       const newUser = await db
         .insert(users)
         .values({
@@ -80,8 +93,6 @@ if (!validLink) {
         expires: expiresAt,
         secure: import.meta.env.PROD,
       });
-
-      console.log("cookie set...");
 
       return Astro.redirect("/profile");
     }

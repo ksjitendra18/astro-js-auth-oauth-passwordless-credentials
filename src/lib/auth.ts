@@ -474,3 +474,9 @@ export const sendMagicLink = async ({
     throw new Error("Error while sending mail");
   }
 };
+
+export const create2FASession = async (userId: string) => {
+  const id = generateVerificationId();
+  await redis.set(`2fa_auth:${id}`, userId, { ex: 7200 });
+  return id;
+};

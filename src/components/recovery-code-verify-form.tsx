@@ -1,7 +1,6 @@
 import { createSignal, Show, type JSX } from "solid-js";
 
 const RecoveryCodeVerifyForm = () => {
-  const [showSecret, setShowSecret] = createSignal(false);
   const [loading, setLoading] = createSignal(false);
   const [msg, setMsg] = createSignal("");
   const [success, setSuccess] = createSignal(false);
@@ -16,6 +15,8 @@ const RecoveryCodeVerifyForm = () => {
     const enteredCode = formData.get("enteredCode");
     try {
       setLoading(true);
+      setSuccess(false);
+      setMsg("");
 
       const res = await fetch("/api/auth/verify-recovery-code", {
         method: "POST",
