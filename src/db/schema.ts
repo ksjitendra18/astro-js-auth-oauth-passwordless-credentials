@@ -24,6 +24,10 @@ export const users = sqliteTable("users", {
   emailVerified: integer("email_verified", { mode: "boolean" })
     .default(false)
     .notNull(),
+  twoFactorEnabled: integer("two_factor_enabled", { mode: "boolean" })
+    .default(false)
+    .notNull(),
+  twoFactorSecret: text("two_factor_secret"),
   isBlocked: integer("is_blocked", { mode: "boolean" }).default(false),
   isDeleted: integer("is_deleted", { mode: "boolean" }).default(false),
   createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
@@ -34,6 +38,7 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   sessions: many(sessions),
   loginLogs: many(loginLogs),
   passwords: one(passwords),
+  recoveryCodes: many(recoveryCodes),
 }));
 
 export const oauthTokens = sqliteTable(
@@ -118,6 +123,24 @@ export const passwords = sqliteTable("passwords", {
 export const passwordRelations = relations(passwords, ({ one }) => ({
   user: one(users, {
     fields: [passwords.userId],
+    references: [users.id],
+  }),
+}));
+
+export const recoveryCodes = sqliteTable("recovery_codes", {
+  id: text("id")
+    .$defaultFn(() => createId())
+    .primaryKey(),
+  userId: text("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
+  code: text("code").notNull(),
+  isUsed: integer("is_used", { mode: "boolean" }).default(false),
+});
+
+export const recoveryCodesRelations = relations(recoveryCodes, ({ one }) => ({
+  user: one(users, {
+    fields: [recoveryCodes.userId],
     references: [users.id],
   }),
 }));
