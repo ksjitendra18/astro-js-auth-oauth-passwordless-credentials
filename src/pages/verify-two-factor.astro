@@ -1,0 +1,23 @@
+---
+import MainLayout from "../layout/main-layout.astro";
+import TwoFactorVerifyForm from "../components/two-factor-verify-form";
+import redis from "../lib/redis";
+const twoFaSess = Astro.cookies.get("2fa_auth")?.value;
+
+if (!twoFaSess) {
+  return Astro.redirect("/login");
+}
+
+const userId = await redis.get(`2fa_auth:${twoFaSess}`);
+
+if (!userId) {
+  return Astro.redirect("/login");
+}
+---
+
+<MainLayout
+  title="Two Factor Authentication"
+  description="Two Factor Authentication"
+>
+  <TwoFactorVerifyForm client:load />
+</MainLayout>

@@ -2,6 +2,7 @@ import type { APIContext } from "astro";
 
 import {
   checkUserExists,
+  create2FASession,
   createLoginLog,
   createSession,
   createUser,
@@ -164,6 +165,28 @@ export async function GET({ request, cookies }: APIContext) {
         });
       }
     }
+    cookies.delete("github_oauth_state", { path: "/" });
+
+    if (userExists.twoFactorEnabled) {
+      const faSess = await create2FASession(userExists.id);
+
+      cookies.set("2fa_auth", faSess, {
+        path: "/",
+        httpOnly: true,
+        sameSite: "lax",
+        secure: import.meta.env.PROD,
+      });
+
+      return Response.json(
+        { message: "2FA required", redirect: "/verify-two-factor" },
+        {
+          status: 302,
+          headers: {
+            Location: "/verify-two-factor",
+          },
+        }
+      );
+    }
 
     const { sessionId, expiresAt } = await createSession({
       userId: userExists.id,
@@ -175,8 +198,6 @@ export async function GET({ request, cookies }: APIContext) {
       userId: userExists.id,
       ip: request.headers.get("x-real-ip") ?? "dev",
     });
-
-    cookies.delete("github_oauth_state", { path: "/" });
 
     cookies.set("app_auth_token", sessionId, {
       path: "/",

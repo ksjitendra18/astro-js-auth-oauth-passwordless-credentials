@@ -15,6 +15,8 @@ const TwoFactorVerifyForm = () => {
     const enteredCode = formData.get("enteredCode");
     try {
       setLoading(true);
+      setSuccess(false);
+      setMsg("");
 
       const res = await fetch("/api/auth/verify-two-factor", {
         method: "POST",
@@ -74,7 +76,7 @@ const TwoFactorVerifyForm = () => {
           <p
             class={`
           ${success() ? "bg-green-600" : "bg-red-600"}
-          bg-red-600 my-5 rounded-md w-fit px-2 py-2 text-white`}
+           my-5 rounded-md w-fit px-2 py-2 text-white`}
           >
             {msg()}
           </p>

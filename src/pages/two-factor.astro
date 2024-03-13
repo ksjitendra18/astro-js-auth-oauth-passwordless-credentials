@@ -1,0 +1,64 @@
+---
+import MainLayout from "../layout/main-layout.astro";
+import TwoFactorForm from "../components/two-factor-form";
+import { authenticator } from "otplib";
+import qrcode from "qrcode";
+import { db } from "../db";
+import { eq } from "drizzle-orm";
+import { users } from "../db/schema";
+import { recoveryCodes } from "../db/schema";
+
+const userId = Astro.locals?.userId;
+
+if (!userId) {
+  return Astro.redirect("/login");
+}
+
+const existingUser = await db.query.users.findFirst({
+  where: eq(users.id, userId),
+  with: {
+    recoveryCodes: {
+      where: eq(recoveryCodes.isUsed, false),
+      columns: {
+        code: true,
+      },
+    },
+  },
+});
+
+if (!existingUser) {
+  return Astro.redirect("/login");
+}
+
+const secret = authenticator.generateSecret(20);
+
+const otpAuthUrl = authenticator.keyuri(
+  existingUser.email,
+  "Astro Auth",
+  secret
+);
+
+const imageUrl = await qrcode.toDataURL(otpAuthUrl);
+---
+
+<MainLayout title="Two Factor Setup" description="Two Factor Setup">
+  <h1 class="my-10 text-3xl font-bold text-center">Two Factor Setup</h1>
+
+  {
+    existingUser.twoFactorEnabled && (
+      <div class="flex items-center justify-center">
+        <p class="bg-emerald-700 text-white rounded-md px-2 py-1">
+          You have Two Factor enabled. You can reconfigure it by submitting the
+          form.
+        </p>
+      </div>
+    )
+  }
+
+  <TwoFactorForm
+    qrCode={imageUrl}
+    secretCode={secret}
+    codes={existingUser.recoveryCodes.map((code) => code.code)}
+    client:load
+  />
+</MainLayout>
