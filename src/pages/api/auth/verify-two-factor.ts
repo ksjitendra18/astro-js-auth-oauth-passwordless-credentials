@@ -7,8 +7,27 @@ import { authenticator } from "otplib";
 import redis from "../../../lib/redis";
 import { createLoginLog, createSession } from "../../../lib/auth";
 
-export async function POST({ request, cookies }: APIContext) {
+export async function POST({ request, clientAddress, cookies }: APIContext) {
   try {
+    const twoFAAttemptCount = await redis.get(`${clientAddress}_2FA_attempt`);
+
+    if (twoFAAttemptCount === null) {
+      await redis.set(`${clientAddress}_2FA_attempt`, 9, { ex: 600 });
+    } else {
+      if (Number(twoFAAttemptCount) < 1) {
+        return Response.json(
+          {
+            error: {
+              code: "rate_limit",
+              message: "Too many requests. Please try again later.",
+            },
+          },
+          { status: 429 }
+        );
+      } else {
+        await redis.decr(`${clientAddress}_login_attempt`);
+      }
+    }
     const { enteredCode } = await request.json();
 
     if (!enteredCode || enteredCode.length != 6) {

@@ -9,9 +9,27 @@ import {
   createSession,
 } from "../../../lib/auth";
 import LoginSchema from "../../../validations/login";
+import redis from "../../../lib/redis";
 
-export async function POST({ request, cookies }: APIContext) {
+export async function POST({ clientAddress, request, cookies }: APIContext) {
   try {
+    const loginAttemptCount = await redis.get(`${clientAddress}_login_attempt`);
+
+    if (loginAttemptCount === null) {
+      await redis.set(`${clientAddress}_login_attempt`, 9, { ex: 600 });
+    } else {
+      if (Number(loginAttemptCount) < 1) {
+        return Response.json(
+          {
+            error: "rate_limit",
+            message: "Too many requests. Please try again later.",
+          },
+          { status: 429 }
+        );
+      } else {
+        await redis.decr(`${clientAddress}_login_attempt`);
+      }
+    }
     const { email, password }: { email: string; password: string } =
       await request.json();
     const parsedData = LoginSchema.safeParse({
