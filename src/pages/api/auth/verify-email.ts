@@ -5,10 +5,29 @@ import { users } from "../../../db/schema";
 import redis from "../../../lib/redis";
 import EmailVerificationSchema from "../../../validations/email-verification";
 
-export async function POST({ request }: APIContext) {
+export async function POST({ request, clientAddress }: APIContext) {
   const { id, code } = await request.json();
 
   try {
+    const emailVerAttemptCount = await redis.get(
+      `${clientAddress}_email_ver_attempt`
+    );
+
+    if (emailVerAttemptCount === null) {
+      await redis.set(`${clientAddress}_email_ver_attempt`, 9, { ex: 600 });
+    } else {
+      if (Number(emailVerAttemptCount) < 1) {
+        return Response.json(
+          {
+            error: "rate_limit",
+            message: "Too many requests. Please try again later.",
+          },
+          { status: 429 }
+        );
+      } else {
+        await redis.decr(`${clientAddress}_email_ver_attempt`);
+      }
+    }
     const parsedData = EmailVerificationSchema.safeParse({
       id,
       code,
