@@ -131,7 +131,7 @@ export async function GET({ request, cookies }: APIContext) {
         sessionId,
         userAgent: request.headers.get("user-agent"),
         userId: userId,
-        ip: request.headers.get("x-real-ip") ?? "dev",
+        ip: clientAddress ?? "dev",
       });
 
       cookies.delete("github_oauth_state", { path: "/" });
@@ -196,7 +196,7 @@ export async function GET({ request, cookies }: APIContext) {
       sessionId,
       userAgent: request.headers.get("user-agent"),
       userId: userExists.id,
-      ip: request.headers.get("x-real-ip") ?? "dev",
+      ip: clientAddress ?? "dev",
     });
 
     cookies.set("app_auth_token", sessionId, {
