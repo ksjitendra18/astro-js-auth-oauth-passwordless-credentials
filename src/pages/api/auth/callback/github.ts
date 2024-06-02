@@ -27,7 +27,7 @@ type EmailRes = (
 
 import queryString from "query-string";
 
-export async function GET({ request, cookies }: APIContext) {
+export async function GET({ request, clientAddress, cookies }: APIContext) {
   const code = new URL(request.url).searchParams?.get("code");
   const state = new URL(request.url).searchParams?.get("state");
 

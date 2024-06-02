@@ -5,7 +5,7 @@ import { recoveryCodes, users } from "../../../db/schema";
 import { createLoginLog, createSession } from "../../../lib/auth";
 import redis from "../../../lib/redis";
 
-export async function POST({ request, cookies }: APIContext) {
+export async function POST({ request, clientAddress, cookies }: APIContext) {
   try {
     const { enteredCode } = await request.json();
 

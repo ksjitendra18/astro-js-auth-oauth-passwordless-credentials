@@ -10,7 +10,7 @@ import {
   updateOauthToken,
 } from "../../../../lib/auth";
 
-export async function GET({ request, cookies }: APIContext) {
+export async function GET({ request, clientAddress, cookies }: APIContext) {
   const code = new URL(request.url).searchParams?.get("code");
   const state = new URL(request.url).searchParams?.get("state");
   const storedState = cookies.get("google_oauth_state")?.value;
