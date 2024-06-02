@@ -25,7 +25,7 @@ export async function POST({ request, clientAddress, cookies }: APIContext) {
           { status: 429 }
         );
       } else {
-        await redis.decr(`${clientAddress}_login_attempt`);
+        await redis.decr(`${clientAddress}_2FA_attempt`);
       }
     }
     const { enteredCode } = await request.json();
