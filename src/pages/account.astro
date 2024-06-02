@@ -54,37 +54,6 @@ function capitalizeFirstWord(text: string) {
       <p class="bg-fuchsia-600 rounded-l-full px-5 py-2 text-white">Profile</p>
       <a class="px-5 py-2" href="/profile">Edit Profile</a>
     </div>
-    {
-      userInfo?.user?.twoFactorEnabled ? (
-        <>
-          <div class="border-2 border-emerald-600 mt-5 flex items-center gap-3 w-fit rounded-full ">
-            <p class="bg-emerald-600 rounded-l-full px-5 py-2 text-white">
-              Multi factor Enabled
-            </p>
-            <a class="px-5 py-2" href="/two-factor">
-              Re Configure
-            </a>
-          </div>
-          <div class="border-2 border-lime-600 mt-5 flex items-center gap-3 w-fit rounded-full ">
-            <p class="bg-lime-600 rounded-l-full px-5 py-2 text-white">
-              Recovery Codes
-            </p>
-            <a class="px-5 py-2" href="/recovery-codes">
-              View
-            </a>
-          </div>
-        </>
-      ) : (
-        <div class="border-2 border-red-600 mt-5 flex items-center gap-3 w-fit rounded-full ">
-          <p class="bg-red-600 rounded-l-full px-5 py-2 text-white">
-            Two factor Disabled
-          </p>
-          <a class="px-5 py-2" href="/two-factor">
-            Set up
-          </a>
-        </div>
-      )
-    }
   </div>
 
   {

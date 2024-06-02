@@ -77,7 +77,7 @@ export async function POST({ clientAddress, request, cookies }: APIContext) {
       sessionId,
       userAgent: request.headers.get("user-agent"),
       userId: userExists.id,
-      ip: request.headers.get("x-real-ip") ?? "dev",
+      ip: clientAddress ?? "dev",
     });
 
     return Response.json(
