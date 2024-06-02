@@ -27,7 +27,7 @@ type EmailRes = (
 
 import queryString from "query-string";
 
-export async function GET({ request, cookies }: APIContext) {
+export async function GET({ request,clientAddress, cookies }: APIContext) {
   const code = new URL(request.url).searchParams?.get("code");
   const state = new URL(request.url).searchParams?.get("state");
 
@@ -131,7 +131,7 @@ export async function GET({ request, cookies }: APIContext) {
         sessionId,
         userAgent: request.headers.get("user-agent"),
         userId: userId,
-        ip: request.headers.get("x-real-ip") ?? "dev",
+        ip: clientAddress ?? "dev",
       });
 
       cookies.delete("github_oauth_state", { path: "/" });
@@ -196,7 +196,7 @@ export async function GET({ request, cookies }: APIContext) {
       sessionId,
       userAgent: request.headers.get("user-agent"),
       userId: userExists.id,
-      ip: request.headers.get("x-real-ip") ?? "dev",
+      ip: clientAddress ?? "dev",
     });
 
     cookies.set("app_auth_token", sessionId, {

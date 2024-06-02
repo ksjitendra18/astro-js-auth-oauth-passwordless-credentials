@@ -5,8 +5,27 @@ import { recoveryCodes, users } from "../../../db/schema";
 import { createLoginLog, createSession } from "../../../lib/auth";
 import redis from "../../../lib/redis";
 
-export async function POST({ request, cookies }: APIContext) {
+export async function POST({ request,clientAddress, cookies }: APIContext) {
   try {
+    const verifyRecoveryCodeAttempt = await redis.get(`${clientAddress}_recov_code_attempt`);
+
+    if (verifyRecoveryCodeAttempt === null) {
+      await redis.set(`${clientAddress}_recov_code_attempt`, 9, { ex: 600 });
+    } else {
+      if (Number(verifyRecoveryCodeAttempt) < 1) {
+        return Response.json(
+          {
+            error: {
+              code: "rate_limit",
+              message: "Too many requests. Please try again later.",
+            },
+          },
+          { status: 429 }
+        );
+      } else {
+        await redis.decr(`${clientAddress}_recov_code_attempt`);
+      }
+    }
     const { enteredCode } = await request.json();
 
     if (!enteredCode || enteredCode.length != 14) {
@@ -78,7 +97,7 @@ export async function POST({ request, cookies }: APIContext) {
         sessionId,
         userAgent: request.headers.get("user-agent"),
         userId: userExists.id,
-        ip: request.headers.get("x-real-ip") ?? "dev",
+        ip: clientAddress ?? "dev",
       });
 
       cookies.delete("2fa_auth", { path: "/" });

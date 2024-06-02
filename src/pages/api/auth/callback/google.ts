@@ -10,7 +10,7 @@ import {
   updateOauthToken,
 } from "../../../../lib/auth";
 
-export async function GET({ request, cookies }: APIContext) {
+export async function GET({ request, clientAddress, cookies }: APIContext) {
   const code = new URL(request.url).searchParams?.get("code");
   const state = new URL(request.url).searchParams?.get("state");
   const storedState = cookies.get("google_oauth_state")?.value;
@@ -86,7 +86,7 @@ export async function GET({ request, cookies }: APIContext) {
         sessionId,
         userAgent: request.headers.get("user-agent"),
         userId: userId,
-        ip: request.headers.get("x-real-ip") ?? "dev",
+        ip: clientAddress ?? "dev",
       });
 
       cookies.delete("google_oauth_state");
@@ -153,7 +153,7 @@ export async function GET({ request, cookies }: APIContext) {
         sessionId,
         userAgent: request.headers.get("user-agent"),
         userId: userExists.id,
-        ip: request.headers.get("x-real-ip") ?? "dev",
+        ip: clientAddress ?? "dev",
       });
 
       cookies.set("app_auth_token", sessionId, {
