@@ -46,10 +46,6 @@ type TokenArgs = {
 const expiresAt = new Date();
 expiresAt.setDate(expiresAt.getDate() + 14);
 
-export async function throwError() {
-  throw new Error("wtf");
-}
-
 export const createUser = async ({
   email,
   fullName,
