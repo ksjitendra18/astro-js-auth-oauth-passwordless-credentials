@@ -38,7 +38,7 @@ if (!validLink) {
         sessionId,
         userAgent: Astro.request.headers.get("user-agent"),
         userId: userExists.id,
-        ip: Astro.request.headers.get("x-real-ip") ?? "dev",
+        ip: Astro.clientAddress ?? "dev",
       });
 
       Astro.cookies.set("app_auth_token", sessionId, {
@@ -70,7 +70,7 @@ if (!validLink) {
         sessionId,
         userAgent: Astro.request.headers.get("user-agent"),
         userId: newUser[0].id,
-        ip: Astro.request.headers.get("x-real-ip") ?? "dev",
+        ip: Astro.clientAddress ?? "dev",
       });
       await redis.del(Astro.params.verificationId!);
       Astro.cookies.set("app_auth_token", sessionId, {
