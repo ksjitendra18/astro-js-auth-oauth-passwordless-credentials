@@ -4,6 +4,8 @@ import { customAlphabet } from "nanoid";
 import { authenticator } from "otplib";
 import { db } from "../../../db";
 import { recoveryCodes, sessions, users } from "../../../db/schema";
+import { EncryptionPurpose, aesEncrypt } from "../../../lib/encrypt-decrypt";
+import bcrypt from "bcryptjs";
 
 export async function POST({ request, cookies }: APIContext) {
   const generateId = customAlphabet("0123456789abcdefghijklmnopqrstuvwxyz", 4);
@@ -62,12 +64,18 @@ export async function POST({ request, cookies }: APIContext) {
 
     const userId = sessionInfo.user.id;
 
+    // encrypt the secret code
+    const encryptedSecretCode = aesEncrypt(
+      secretCode,
+      EncryptionPurpose.TWO_FA_SECRET
+    );
+
     if (isValidToken) {
       await db
         .update(users)
         .set({
           twoFactorEnabled: true,
-          twoFactorSecret: secretCode,
+          twoFactorSecret: encryptedSecretCode,
         })
         .where(eq(users.id, userId));
 
@@ -79,28 +87,24 @@ export async function POST({ request, cookies }: APIContext) {
         columns: { code: true },
       });
 
-      let codes: string[] = [];
-
       if (exisitingCode.length > 0) {
-        exisitingCode.forEach((code) => {
-          codes.push(code.code);
-        });
+        await db.delete(recoveryCodes).where(eq(recoveryCodes.userId, userId));
       }
 
-      if (exisitingCode.length <= 0) {
-        for (let i = 0; i < 6; i++) {
-          const code = `${generateId()}-${generateId()}-${generateId()}`;
-          codes.push(code);
-        }
-        await db.insert(recoveryCodes).values([
-          { userId, code: codes[0] },
-          { userId, code: codes[1] },
-          { userId, code: codes[2] },
-          { userId, code: codes[3] },
-          { userId, code: codes[4] },
-          { userId, code: codes[5] },
-        ]);
+      let codes: string[] = [];
+      for (let i = 0; i < 6; i++) {
+        const code = `${generateId()}-${generateId()}-${generateId()}`;
+        codes.push(code);
       }
+
+      await db.insert(recoveryCodes).values([
+        { userId, code: aesEncrypt(codes[0], EncryptionPurpose.RECOVERY_CODE) },
+        { userId, code: aesEncrypt(codes[1], EncryptionPurpose.RECOVERY_CODE) },
+        { userId, code: aesEncrypt(codes[2], EncryptionPurpose.RECOVERY_CODE) },
+        { userId, code: aesEncrypt(codes[3], EncryptionPurpose.RECOVERY_CODE) },
+        { userId, code: aesEncrypt(codes[4], EncryptionPurpose.RECOVERY_CODE) },
+        { userId, code: aesEncrypt(codes[5], EncryptionPurpose.RECOVERY_CODE) },
+      ]);
 
       return Response.json({
         success: true,

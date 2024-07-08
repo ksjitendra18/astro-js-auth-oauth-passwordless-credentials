@@ -6,6 +6,7 @@ import bcrypt from "bcryptjs";
 import { authenticator } from "otplib";
 import redis from "../../../lib/redis";
 import { createLoginLog, createSession } from "../../../lib/auth";
+import { EncryptionPurpose, aesDecrypt } from "../../../lib/encrypt-decrypt";
 
 export async function POST({ request, clientAddress, cookies }: APIContext) {
   try {
@@ -75,9 +76,14 @@ export async function POST({ request, clientAddress, cookies }: APIContext) {
       );
     }
 
+    const decryptedSecretCode = aesDecrypt(
+      userExists.twoFactorSecret!,
+      EncryptionPurpose.TWO_FA_SECRET
+    );
+
     const isValidToken = authenticator.verify({
       token: enteredCode,
-      secret: userExists.twoFactorSecret!,
+      secret: decryptedSecretCode,
     });
 
     if (isValidToken) {

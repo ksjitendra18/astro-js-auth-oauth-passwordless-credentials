@@ -2,6 +2,7 @@ import type { APIContext } from "astro";
 import { and, eq, gte } from "drizzle-orm";
 import { db } from "../../../db";
 import { recoveryCodes, sessions } from "../../../db/schema";
+import { EncryptionPurpose, aesDecrypt } from "../../../lib/encrypt-decrypt";
 
 export async function GET({ cookies }: APIContext) {
   try {
@@ -56,7 +57,7 @@ export async function GET({ cookies }: APIContext) {
 
     if (exisitingCode.length > 0) {
       exisitingCode.forEach((code) => {
-        codes.push(code.code);
+        codes.push(aesDecrypt(code.code, EncryptionPurpose.RECOVERY_CODE));
       });
     }
 

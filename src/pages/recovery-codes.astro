@@ -3,7 +3,8 @@ import { eq } from "drizzle-orm";
 import { db } from "../db";
 import { recoveryCodes, users } from "../db/schema";
 import MainLayout from "../layout/main-layout.astro";
-
+import { aesDecrypt } from "../lib/encrypt-decrypt";
+import { EncryptionPurpose } from "../lib/encrypt-decrypt";
 const userId = Astro.locals?.userId;
 
 if (!userId) {
@@ -60,7 +61,11 @@ if (!existingUser) {
         Rotate Code
       </button>
     </div>
-    {existingUser.recoveryCodes.map((code) => <p>{code.code}</p>)}
+    {
+      existingUser.recoveryCodes.map((code) => (
+        <p>{aesDecrypt(code.code, EncryptionPurpose.RECOVERY_CODE)}</p>
+      ))
+    }
   </div>
 </MainLayout>
 
