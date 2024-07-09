@@ -10,29 +10,29 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/check": "^0.3.4",
-    "@astrojs/solid-js": "^4.0.1",
+    "@astrojs/check": "^0.7.0",
+    "@astrojs/solid-js": "^4.4.0",
     "@astrojs/tailwind": "^5.1.0",
-    "@astrojs/vercel": "^6.1.4",
-    "@libsql/client": "^0.4.3",
+    "@astrojs/vercel": "^7.7.2",
+    "@libsql/client": "^0.7.0",
     "@paralleldrive/cuid2": "^2.2.2",
-    "@upstash/redis": "^1.28.4",
-    "astro": "^4.4.1",
+    "@upstash/redis": "^1.31.6",
+    "astro": "^4.11.3",
     "bcryptjs": "^2.4.3",
     "bowser": "^2.11.0",
-    "drizzle-orm": "^0.29.3",
-    "nanoid": "^5.0.6",
+    "drizzle-orm": "^0.31.2",
+    "nanoid": "^5.0.7",
     "otplib": "^12.0.1",
     "qrcode": "^1.5.3",
-    "query-string": "^8.2.0",
-    "solid-js": "^1.8.15",
-    "tailwindcss": "^3.4.1",
-    "typescript": "^5.3.3",
-    "zod": "^3.22.4"
+    "query-string": "^9.0.0",
+    "solid-js": "^1.8.18",
+    "tailwindcss": "^3.4.4",
+    "typescript": "^5.5.3",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/qrcode": "^1.5.5",
-    "drizzle-kit": "^0.20.14"
+    "drizzle-kit": "^0.22.8"
   }
 }
