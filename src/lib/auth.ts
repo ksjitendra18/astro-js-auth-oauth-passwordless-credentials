@@ -216,7 +216,7 @@ export const sendVerificationMail = async ({ email }: { email: string }) => {
           Authorization: `Bearer ${import.meta.env.RESEND_API_KEY}`,
         },
         body: JSON.stringify({
-          from: "astro-auth@auth-noreply-alpha.rdrto.xyz",
+          from: import.meta.env.FROM_EMAIL,
           to: email,
           subject: `${token} is your email verification code`,
           html: `<div>The code for verification is ${token} </div>
@@ -316,7 +316,7 @@ export const sendPasswordResetMail = async ({
             Authorization: `Bearer ${import.meta.env.RESEND_API_KEY}`,
           },
           body: JSON.stringify({
-            from: "astro-auth@auth-noreply-alpha.rdrto.xyz",
+            from: import.meta.env.FROM_EMAIL,
             to: email,
             subject: `Password Reset Request`,
             html: `<div>Reset your password </div>
@@ -412,7 +412,7 @@ export const sendMagicLink = async ({
           Authorization: `Bearer ${import.meta.env.RESEND_API_KEY}`,
         },
         body: JSON.stringify({
-          from: "astro-auth@auth-noreply-alpha.rdrto.xyz",
+          from: import.meta.env.FROM_EMAIL,
           to: email,
           subject: `Log in to Astro Auth`,
           html: `<div>Log in as ${email} </div>

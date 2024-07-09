@@ -2,7 +2,7 @@ import type { APIContext } from "astro";
 import bcrypt from "bcryptjs";
 import { and, eq } from "drizzle-orm";
 import { db } from "../../../db";
-import { passwords, users } from "../../../db/schema";
+import { passwords, sessions, users } from "../../../db/schema";
 import redis from "../../../lib/redis";
 import PasswordSchema from "../../../validations/password";
 
@@ -74,6 +74,8 @@ export async function POST({ request }: APIContext) {
         password: hashedPassword,
       })
       .where(eq(passwords.userId, userExists.id));
+
+    await db.delete(sessions).where(eq(sessions.userId, userExists.id));
 
     if (res.rowsAffected > 0) {
       return Response.json({ success: true }, { status: 200 });
