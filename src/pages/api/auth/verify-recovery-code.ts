@@ -4,10 +4,13 @@ import { db } from "../../../db";
 import { recoveryCodes, users } from "../../../db/schema";
 import { createLoginLog, createSession } from "../../../lib/auth";
 import redis from "../../../lib/redis";
+import { aesDecrypt, EncryptionPurpose } from "../../../lib/encrypt-decrypt";
 
-export async function POST({ request,clientAddress, cookies }: APIContext) {
+export async function POST({ request, clientAddress, cookies }: APIContext) {
   try {
-    const verifyRecoveryCodeAttempt = await redis.get(`${clientAddress}_recov_code_attempt`);
+    const verifyRecoveryCodeAttempt = await redis.get(
+      `${clientAddress}_recov_code_attempt`
+    );
 
     if (verifyRecoveryCodeAttempt === null) {
       await redis.set(`${clientAddress}_recov_code_attempt`, 9, { ex: 600 });
@@ -78,17 +81,25 @@ export async function POST({ request,clientAddress, cookies }: APIContext) {
       );
     }
 
-    const codes = userExists.recoveryCodes.map((code) => code.code);
+    let isValidCode = false;
+    for (const recoveryCode of userExists.recoveryCodes) {
+      const decryptedCode = aesDecrypt(
+        recoveryCode.code,
+        EncryptionPurpose.RECOVERY_CODE
+      );
 
-    const isValidCode = codes.some((code) => code === enteredCode);
+      if (decryptedCode === enteredCode) {
+        await db
+          .update(recoveryCodes)
+          .set({
+            isUsed: true,
+          })
+          .where(eq(recoveryCodes.id, recoveryCode.id));
+        isValidCode = true;
+      }
+    }
 
     if (isValidCode) {
-      await db
-        .update(recoveryCodes)
-        .set({
-          isUsed: true,
-        })
-        .where(eq(recoveryCodes.code, enteredCode));
       const { sessionId, expiresAt } = await createSession({
         userId: userExists.id,
       });

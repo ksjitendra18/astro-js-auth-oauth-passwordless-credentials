@@ -3,7 +3,7 @@ import { and, eq, gte } from "drizzle-orm";
 import { customAlphabet } from "nanoid";
 import { db } from "../../../db";
 import { recoveryCodes, sessions } from "../../../db/schema";
-import { EncryptionPurpose, aesEncrypt } from "../../../lib/encrypt";
+import { EncryptionPurpose, aesEncrypt } from "../../../lib/encrypt-decrypt";
 
 export async function POST({ cookies }: APIContext) {
   const generateId = customAlphabet("0123456789abcdefghijklmnopqrstuvwxyz", 4);

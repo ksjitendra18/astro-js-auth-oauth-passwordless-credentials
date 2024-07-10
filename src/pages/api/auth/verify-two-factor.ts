@@ -6,7 +6,7 @@ import bcrypt from "bcryptjs";
 import { authenticator } from "otplib";
 import redis from "../../../lib/redis";
 import { createLoginLog, createSession } from "../../../lib/auth";
-import { aesDecrypt, EncryptionPurpose } from "../../../lib/encrypt";
+import { aesDecrypt, EncryptionPurpose } from "../../../lib/encrypt-decrypt";
 
 export async function POST({ request, clientAddress, cookies }: APIContext) {
   try {

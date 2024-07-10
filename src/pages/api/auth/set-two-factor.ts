@@ -4,7 +4,7 @@ import { customAlphabet } from "nanoid";
 import { authenticator } from "otplib";
 import { db } from "../../../db";
 import { recoveryCodes, sessions, users } from "../../../db/schema";
-import { EncryptionPurpose, aesEncrypt } from "../../../lib/encrypt";
+import { EncryptionPurpose, aesEncrypt } from "../../../lib/encrypt-decrypt";
 
 export async function POST({ request, cookies }: APIContext) {
   const generateId = customAlphabet("0123456789abcdefghijklmnopqrstuvwxyz", 4);

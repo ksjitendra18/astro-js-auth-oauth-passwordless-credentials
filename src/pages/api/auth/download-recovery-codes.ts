@@ -2,7 +2,7 @@ import type { APIContext } from "astro";
 import { and, eq, gte } from "drizzle-orm";
 import { db } from "../../../db";
 import { recoveryCodes, sessions } from "../../../db/schema";
-import { EncryptionPurpose, aesDecrypt } from "../../../lib/encrypt";
+import { EncryptionPurpose, aesDecrypt } from "../../../lib/encrypt-decrypt";
 
 export async function GET({ cookies }: APIContext) {
   try {
