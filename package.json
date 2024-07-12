@@ -10,16 +10,16 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/check": "^0.3.1",
-    "@astrojs/tailwind": "^5.0.2",
-    "@astrojs/vercel": "^6.1.1",
-    "@libsql/client": "^0.4.0-pre.5",
-    "astro": "^4.0.8",
-    "drizzle-orm": "^0.29.2",
-    "tailwindcss": "^3.0.24",
-    "typescript": "^5.3.2"
+    "@astrojs/check": "^0.8.1",
+    "@astrojs/tailwind": "^5.1.0",
+    "@astrojs/vercel": "^7.7.2",
+    "@libsql/client": "^0.7.0",
+    "astro": "^4.11.5",
+    "drizzle-orm": "^0.32.0",
+    "tailwindcss": "^3.4.4",
+    "typescript": "^5.5.3"
   },
   "devDependencies": {
-    "drizzle-kit": "^0.20.9"
+    "drizzle-kit": "^0.23.0"
   }
 }
