@@ -20,7 +20,7 @@
     "astro": "^4.11.5",
     "bcryptjs": "^2.4.3",
     "bowser": "^2.11.0",
-    "drizzle-orm": "^0.31.4",
+    "drizzle-orm": "^0.32.0",
     "nanoid": "^5.0.7",
     "otplib": "^12.0.1",
     "qrcode": "^1.5.3",
@@ -33,6 +33,6 @@
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/qrcode": "^1.5.5",
-    "drizzle-kit": "^0.22.8"
+    "drizzle-kit": "^0.23.0"
   }
 }
