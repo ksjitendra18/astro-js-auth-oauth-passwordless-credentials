@@ -42,7 +42,7 @@ if (!validLink) {
           httpOnly: true,
           secure: import.meta.env.PROD,
         });
-        return Astro.redirect("/two-factor");
+        return Astro.redirect("/verify-two-factor");
       }
       const { sessionId, expiresAt } = await createSession({
         userId: userExists.id,
