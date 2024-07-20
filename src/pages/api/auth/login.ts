@@ -32,6 +32,7 @@ export async function POST({ clientAddress, request, cookies }: APIContext) {
     }
     const { email, password }: { email: string; password: string } =
       await request.json();
+
     const parsedData = LoginSchema.safeParse({
       email: email,
       password: password,
