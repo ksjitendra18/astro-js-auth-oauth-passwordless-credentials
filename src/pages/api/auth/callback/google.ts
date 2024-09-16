@@ -1,14 +1,17 @@
 import type { APIContext } from "astro";
 
 import {
+  checkOauthUserExists,
   checkUserExists,
   create2FASession,
   createLoginLog,
+  createOauthProvider,
   createSession,
   createUser,
-  saveOauthToken,
-  updateOauthToken,
 } from "../../../../lib/auth";
+import { oauthProviders } from "../../../../db/schema";
+import { db } from "../../../../db";
+import { eq } from "drizzle-orm";
 
 export async function GET({ request, clientAddress, cookies }: APIContext) {
   const code = new URL(request.url).searchParams?.get("code");
@@ -29,8 +32,8 @@ export async function GET({ request, clientAddress, cookies }: APIContext) {
 
   try {
     const tokenUrl = "https://www.googleapis.com/oauth2/v4/token";
-
     const formData = new URLSearchParams();
+
     formData.append("grant_type", "authorization_code");
     formData.append("client_id", import.meta.env.GOOGLE_AUTH_CLIENT);
     formData.append("client_secret", import.meta.env.GOOGLE_AUTH_SECRET);
@@ -56,8 +59,9 @@ export async function GET({ request, clientAddress, cookies }: APIContext) {
     );
     const fetchUserRes = await fetchUser.json();
 
-    const userExists = await checkUserExists({
+    const { userExists, oauthProviderData } = await checkOauthUserExists({
       email: fetchUserRes.email,
+      providerId: fetchUserRes.id,
       strategy: "google",
     });
 
@@ -70,23 +74,23 @@ export async function GET({ request, clientAddress, cookies }: APIContext) {
         emailVerified: true,
       });
 
-      await saveOauthToken({
+      await createOauthProvider({
+        providerId: fetchUserRes.id,
         userId: userId,
         strategy: "google",
-        accessToken: fetchTokenRes.access_token,
-        refreshToken: fetchTokenRes.refresh_token,
+        email: fetchUserRes.email,
       });
 
       const { sessionId, expiresAt } = await createSession({
         userId: userId,
       });
 
-      // log
       await createLoginLog({
         sessionId,
         userAgent: request.headers.get("user-agent"),
         userId: userId,
         ip: clientAddress ?? "dev",
+        strategy: "google",
       });
 
       cookies.delete("google_oauth_state");
@@ -101,76 +105,82 @@ export async function GET({ request, clientAddress, cookies }: APIContext) {
           }`,
         },
       });
+    } else if (userExists && !oauthProviderData) {
+      await createOauthProvider({
+        providerId: fetchUserRes.id,
+        userId: userExists.id,
+        strategy: "google",
+        email: fetchUserRes.email,
+      });
     } else {
-      if (userExists.oauthTokens.length > 0) {
-        // oauth strategy exists
-        // update token
-
-        await updateOauthToken({
-          userId: userExists.id,
-          strategy: "google",
-          accessToken: fetchTokenRes.access_token,
-          refreshToken: fetchTokenRes.refresh_token,
-        });
-      } else {
-        await saveOauthToken({
-          userId: userExists.id,
-          strategy: "google",
-          accessToken: fetchTokenRes.access_token,
-          refreshToken: fetchTokenRes.refresh_token,
-        });
+      // this is not required because hardly user will change their email. very rare chances
+      if (userExists.oauthProviders[0].email !== fetchUserRes.email) {
+        await db
+          .update(oauthProviders)
+          .set({
+            email: fetchUserRes.email,
+          })
+          .where(eq(oauthProviders.providerUserId, fetchUserRes.id));
       }
+    }
 
-      cookies.delete("google_oauth_state", { path: "/" });
-      cookies.delete("google_code_challenge", { path: "/" });
+    cookies.delete("google_oauth_state", { path: "/" });
+    cookies.delete("google_code_challenge", { path: "/" });
 
-      if (userExists.twoFactorEnabled) {
-        const faSess = await create2FASession(userExists.id);
+    if (userExists.twoFactorEnabled) {
+      const faSess = await create2FASession(userExists.id);
 
-        cookies.set("2fa_auth", faSess, {
-          path: "/",
-          httpOnly: true,
-          sameSite: "lax",
-          secure: import.meta.env.PROD,
-        });
-
-        return Response.json(
-          { message: "2FA required", redirect: "/verify-two-factor" },
-          {
-            status: 302,
-            headers: {
-              Location: "/verify-two-factor",
-            },
-          }
-        );
-      }
-
-      const { sessionId, expiresAt } = await createSession({
-        userId: userExists.id,
-      });
-
-      await createLoginLog({
-        sessionId,
-        userAgent: request.headers.get("user-agent"),
-        userId: userExists.id,
-        ip: clientAddress ?? "dev",
-      });
-
-      cookies.set("app_auth_token", sessionId, {
+      cookies.set("login_method", "google", {
         path: "/",
         httpOnly: true,
-        expires: expiresAt,
-        secure: import.meta.env.PROD,
         sameSite: "lax",
+        secure: import.meta.env.PROD,
       });
 
-      return new Response(null, {
-        status: 302,
-        headers: {
-          Location: "/",
-        },
+      cookies.set("2fa_auth", faSess, {
+        path: "/",
+        httpOnly: true,
+        sameSite: "lax",
+        secure: import.meta.env.PROD,
       });
+
+      return Response.json(
+        { message: "2FA required", redirect: "/verify-two-factor" },
+        {
+          status: 302,
+          headers: {
+            Location: "/verify-two-factor",
+          },
+        }
+      );
     }
+
+    const { sessionId, expiresAt } = await createSession({
+      userId: userExists.id,
+    });
+
+    await createLoginLog({
+      sessionId,
+      userAgent: request.headers.get("user-agent"),
+      userId: userExists.id,
+      ip: clientAddress ?? "dev",
+      strategy: "google",
+    });
+
+    cookies.set("app_auth_token", sessionId, {
+      path: "/",
+      httpOnly: true,
+      expires: expiresAt,
+      secure: import.meta.env.PROD,
+      sameSite: "lax",
+    });
+
+    return new Response(null, {
+      status: 302,
+      headers: {
+        Location: "/",
+      },
+    });
   } catch (error) {
     cookies.delete("google_oauth_state", { path: "/" });
     cookies.delete("google_code_challenge", { path: "/" });

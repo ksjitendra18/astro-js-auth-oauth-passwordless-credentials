@@ -2,6 +2,7 @@
 
 This repo is for the series of blog post covering Authentication in Astro.
 
+
 ## Technolgies Used
 
 - Turso DB

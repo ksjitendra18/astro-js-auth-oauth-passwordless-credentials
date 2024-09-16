@@ -1,4 +1,4 @@
-import { object, string } from "zod";
+import { object, string, z } from "zod";
 
 const SignupSchema = object({
   name: string({ required_error: "Name is required" })
@@ -16,4 +16,5 @@ const SignupSchema = object({
     }),
 });
 
+export type SignupSchemaType = z.infer<typeof SignupSchema>;
 export default SignupSchema;

@@ -26,9 +26,14 @@ export async function POST({ request, url }: APIContext) {
       eq(users.isBlocked, false),
       eq(users.isDeleted, false)
     ),
+    columns: { email: true },
 
     with: {
-      passwords: true,
+      passwords: {
+        columns: {
+          userId: true,
+        },
+      },
     },
   });
 

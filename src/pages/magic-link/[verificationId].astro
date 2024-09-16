@@ -14,12 +14,14 @@ let isBlocked = false;
 let serverError = false;
 let error = false;
 let success = false;
-const validLink = await redis.get(Astro.params.verificationId!);
 
-if (!validLink) {
+const userEmail = await redis.get(Astro.params.verificationId!);
+
+
+if (!userEmail) {
   error = true;
 } else {
-  const parsedData = EmailSchema.safeParse(validLink);
+  const parsedData = EmailSchema.safeParse(userEmail);
 
   if (!parsedData.success) {
     error = true;
@@ -37,6 +39,14 @@ if (!validLink) {
       if (userExists.twoFactorEnabled) {
         const faSess = await create2FASession(userExists.id);
 
+        Astro.cookies.set("login_method", "magic_link", {
+        path: "/",
+        httpOnly: true,
+        sameSite: "lax",
+        secure: import.meta.env.PROD,
+      });
+
+
         Astro.cookies.set("2fa_auth", faSess, {
           path: "/",
           httpOnly: true,
@@ -53,6 +63,7 @@ if (!validLink) {
         userAgent: Astro.request.headers.get("user-agent"),
         userId: userExists.id,
         ip: Astro.clientAddress ?? "dev",
+        strategy: "magic_link",
       });
 
       Astro.cookies.set("app_auth_token", sessionId, {
@@ -70,7 +81,10 @@ if (!validLink) {
       const newUser = await db
         .insert(users)
         .values({
-          email: validLink as string,
+          email: parsedData.data,
+          profilePhoto: "",
+          fullName: "",
+          userName: parsedData.data.split("@")[0],
           emailVerified: true,
         })
         .returning({ id: users.id });
@@ -84,6 +98,7 @@ if (!validLink) {
         userAgent: Astro.request.headers.get("user-agent"),
         userId: newUser[0].id,
         ip: Astro.clientAddress ?? "dev",
+        strategy: "magic_link",
       });
       await redis.del(Astro.params.verificationId!);
       Astro.cookies.set("app_auth_token", sessionId, {

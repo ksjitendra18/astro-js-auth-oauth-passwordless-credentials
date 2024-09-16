@@ -26,6 +26,7 @@ export async function POST({ request }: APIContext) {
       eq(users.isBlocked, false),
       eq(users.isDeleted, false)
     ),
+    columns: { id: true, emailVerified: true },
   });
 
   if (!userExists) {
@@ -77,6 +78,9 @@ export async function POST({ request }: APIContext) {
     return Response.json({ error: "server_error" }, { status: 500 });
   } catch (err) {
     console.log("Error while sending mail", err);
-    return Response.json({ error: "server_error" }, { status: 500 });
+    return Response.json(
+      { error: "server_error", message: "Error while sending mail" },
+      { status: 500 }
+    );
   }
 }

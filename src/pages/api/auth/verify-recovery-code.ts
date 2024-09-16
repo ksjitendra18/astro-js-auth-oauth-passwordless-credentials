@@ -65,6 +65,7 @@ export async function POST({ request, clientAddress, cookies }: APIContext) {
 
     const userExists = await db.query.users.findFirst({
       where: and(eq(users.id, userId as string)),
+      columns: { id: true },
       with: {
         recoveryCodes: {
           where: eq(recoveryCodes.isUsed, false),
@@ -104,11 +105,27 @@ export async function POST({ request, clientAddress, cookies }: APIContext) {
         userId: userExists.id,
       });
 
+      const validStrategies = [
+        "github",
+        "google",
+        "credentials",
+        "magic_link",
+      ] as const;
+      type LoginStrategy = (typeof validStrategies)[number];
+
+      const loginMethod = cookies.get("login_method")?.value;
+      const strategy: LoginStrategy = validStrategies.includes(
+        loginMethod as LoginStrategy
+      )
+        ? (loginMethod as LoginStrategy)
+        : "credentials";
+
       await createLoginLog({
         sessionId,
         userAgent: request.headers.get("user-agent"),
         userId: userExists.id,
         ip: clientAddress ?? "dev",
+        strategy: strategy,
       });
 
       cookies.delete("2fa_auth", { path: "/" });

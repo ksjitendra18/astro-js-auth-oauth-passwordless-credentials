@@ -35,6 +35,7 @@ export async function POST({ request }: APIContext) {
 
     const userExists = await db.query.users.findFirst({
       where: eq(users.email, email),
+      columns: { id: true },
     });
 
     if (userExists) {

@@ -1,5 +1,7 @@
 import { Show, createSignal, type JSX } from "solid-js";
-import PasswordSchema from "../validations/password";
+import PasswordSchema, {
+  type PasswordSchemaType,
+} from "../validations/password";
 import { z } from "zod";
 
 const SetNewPassword = ({ id }: { id: string }) => {
@@ -11,10 +13,7 @@ const SetNewPassword = ({ id }: { id: string }) => {
   const [showConfirmPassword, setShowConfirmPassword] = createSignal(false);
 
   const [validationIssue, setValidationIssue] =
-    createSignal<z.ZodFormattedError<
-      z.infer<typeof PasswordSchema>,
-      string
-    > | null>(null);
+    createSignal<z.ZodFormattedError<PasswordSchemaType, string> | null>(null);
 
   const handleSubmit: JSX.EventHandlerUnion<
     HTMLFormElement,

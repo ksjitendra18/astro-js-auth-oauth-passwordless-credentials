@@ -13,6 +13,7 @@ if (!userId) {
 
 const existingUser = await db.query.users.findFirst({
   where: eq(users.id, userId),
+  columns:{},
   with: {
     recoveryCodes: {
       where: eq(recoveryCodes.isUsed, false),

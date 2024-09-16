@@ -1,23 +1,27 @@
 ---
-import { eq, desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 
 import { db } from "../db";
-import MainLayout from "../layout/main-layout.astro";
 import { loginLogs, sessions } from "../db/schema";
+import MainLayout from "../layout/main-layout.astro";
 
 const sessionToken = Astro.cookies.get("app_auth_token")?.value;
+
 
 if (!sessionToken) {
   return Astro.redirect("/");
 }
 const userInfo = await db.query.sessions.findFirst({
   where: eq(sessions.id, sessionToken),
+  columns:{},
   with: {
     user: {
+      columns:{email:true, twoFactorEnabled:true},
       with: {
-        oauthTokens: {
+        oauthProviders: {
           columns: {
             strategy: true,
+            
           },
         },
         loginLogs: {
@@ -34,6 +38,13 @@ const logs = userInfo?.user?.loginLogs.sort((a, b) =>
 
 function capitalizeFirstWord(text: string) {
   return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+const strategiesMap = {
+  github: "GitHub",
+  google: "Google",
+  credentials: "Credential",
+  magic_link: "Magic Link",
 }
 ---
 
@@ -88,12 +99,12 @@ function capitalizeFirstWord(text: string) {
   </div>
 
   {
-    userInfo?.user?.oauthTokens && userInfo?.user?.oauthTokens.length > 0 && (
+    userInfo?.user?.oauthProviders && userInfo?.user?.oauthProviders.length > 0 && (
       <div class="my-5">
         <h2 class="text-xl my-3 font-semibold">Connected Accounts</h2>
 
         <div class="flex gap-5 flex-wrap items-center">
-          {userInfo?.user?.oauthTokens.map((provider) => (
+          {userInfo?.user?.oauthProviders.map((provider) => (
             <div class="flex border-2 w-fit border-slate-600 items-center gap-4 rounded-full px-5 py-2">
               {provider.strategy === "github" ? (
                 <img width="30px" src="/github-mark.svg" />
@@ -125,11 +136,19 @@ function capitalizeFirstWord(text: string) {
               {capitalizeFirstWord(log.device)}
               {capitalizeFirstWord(log.browser)}
             </div>
-            <div class="flex md:gap-5 gap-3 w-full lg:w-auto mt-2 flex-col md:flex-row flex-wrap">
+            <div class="flex md:gap-5 gap-3 w-full items-center lg:w-auto mt-2 flex-col md:flex-row flex-wrap">
+              <div class="bg-blue-700 rounded-md px-2 py-1 text-white text-sm">Method: {strategiesMap[log.strategy]}</div>
               <div>IP: {log.ip}</div>
               <div>
                 Logged in at:
-                {new Intl.DateTimeFormat("en-US").format(
+                {new Intl.DateTimeFormat("en-US", {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    hour12: true                      
+                }).format(
                   new Date(log.loggedInAt!)
                 )}
               </div>

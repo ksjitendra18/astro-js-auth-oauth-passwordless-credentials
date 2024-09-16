@@ -43,8 +43,13 @@ export async function POST({ request, cookies }: APIContext) {
         eq(sessions.id, authToken),
         gte(sessions.expiresAt, new Date().getTime())
       ),
+      columns: {},
       with: {
-        user: true,
+        user: {
+          columns: {
+            id: true,
+          },
+        },
       },
     });
 

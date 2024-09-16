@@ -50,10 +50,12 @@ export async function POST({ clientAddress, request, cookies }: APIContext) {
 
     const userExists = await db.query.users.findFirst({
       where: eq(users.email, email),
+      columns: { id: true, twoFactorEnabled: true },
     });
 
     const passwordExists = await db.query.passwords.findFirst({
       where: eq(passwords.userId, userExists?.id ?? "SomeThingRandom"),
+      columns: { password: true },
     });
 
     // match password
@@ -75,6 +77,13 @@ export async function POST({ clientAddress, request, cookies }: APIContext) {
 
     if (userExists.twoFactorEnabled) {
       const faSess = await create2FASession(userExists.id);
+
+      cookies.set("login_method", "credentials", {
+        path: "/",
+        httpOnly: true,
+        sameSite: "lax",
+        secure: import.meta.env.PROD,
+      });
 
       cookies.set("2fa_auth", faSess, {
         path: "/",
@@ -101,6 +110,7 @@ export async function POST({ clientAddress, request, cookies }: APIContext) {
       userAgent: request.headers.get("user-agent"),
       userId: userExists.id,
       ip: clientAddress ?? "dev",
+      strategy: "credentials",
     });
 
     return Response.json(

@@ -22,8 +22,15 @@ export async function GET({ cookies }: APIContext) {
         eq(sessions.id, authToken),
         gte(sessions.expiresAt, new Date().getTime())
       ),
+      columns: {
+        id: true,
+      },
       with: {
-        user: true,
+        user: {
+          columns: {
+            id: true,
+          },
+        },
       },
     });
 

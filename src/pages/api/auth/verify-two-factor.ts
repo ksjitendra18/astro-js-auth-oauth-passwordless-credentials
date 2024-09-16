@@ -1,12 +1,11 @@
 import type { APIContext } from "astro";
-import { sessions, users } from "../../../db/schema";
-import { db } from "../../../db";
-import { and, eq, gte } from "drizzle-orm";
-import bcrypt from "bcryptjs";
+import { and, eq } from "drizzle-orm";
 import { authenticator } from "otplib";
-import redis from "../../../lib/redis";
+import { db } from "../../../db";
+import { users } from "../../../db/schema";
 import { createLoginLog, createSession } from "../../../lib/auth";
 import { EncryptionPurpose, aesDecrypt } from "../../../lib/encrypt-decrypt";
+import redis from "../../../lib/redis";
 
 export async function POST({ request, clientAddress, cookies }: APIContext) {
   try {
@@ -65,6 +64,11 @@ export async function POST({ request, clientAddress, cookies }: APIContext) {
 
     const userExists = await db.query.users.findFirst({
       where: and(eq(users.id, userId as string)),
+      columns: {
+        id: true,
+        twoFactorEnabled: true,
+        twoFactorSecret: true,
+      },
     });
 
     if (!userExists) {
@@ -91,14 +95,31 @@ export async function POST({ request, clientAddress, cookies }: APIContext) {
         userId: userExists.id,
       });
 
+      const validStrategies = [
+        "github",
+        "google",
+        "credentials",
+        "magic_link",
+      ] as const;
+      type LoginStrategy = (typeof validStrategies)[number];
+
+      const loginMethod = cookies.get("login_method")?.value;
+      const strategy: LoginStrategy = validStrategies.includes(
+        loginMethod as LoginStrategy
+      )
+        ? (loginMethod as LoginStrategy)
+        : "credentials";
+
       await createLoginLog({
         sessionId,
         userAgent: request.headers.get("user-agent"),
         userId: userExists.id,
+        strategy: strategy,
         ip: clientAddress ?? "dev",
       });
 
       cookies.delete("2fa_auth", { path: "/" });
+      cookies.delete("login_method", { path: "/" });
 
       cookies.set("app_auth_token", sessionId, {
         path: "/",

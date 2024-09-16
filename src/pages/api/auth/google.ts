@@ -30,9 +30,7 @@ export async function GET({ cookies }: APIContext) {
   const authorizationUrl = queryString.stringifyUrl({
     url: "https://accounts.google.com/o/oauth2/v2/auth",
     query: {
-      access_type: "offline",
       scope: "openid email profile",
-      prompt: "consent",
       response_type: "code",
       client_id: import.meta.env.GOOGLE_AUTH_CLIENT,
       redirect_uri: import.meta.env.GOOGLE_AUTH_CALLBACK_URL,

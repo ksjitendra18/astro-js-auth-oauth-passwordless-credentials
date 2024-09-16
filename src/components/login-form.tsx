@@ -1,14 +1,10 @@
-import LoginSchema from "../validations/login";
+import LoginSchema, { type LoginSchemaType } from "../validations/login";
 import { Show, createSignal, type JSX } from "solid-js";
-import SignupSchema from "../validations/signup";
 import { z } from "zod";
 
 const LoginForm = () => {
   const [validationIssue, setValidationIssue] =
-    createSignal<z.ZodFormattedError<
-      z.infer<typeof SignupSchema>,
-      string
-    > | null>(null);
+    createSignal<z.ZodFormattedError<LoginSchemaType, string> | null>(null);
 
   const [error, setError] = createSignal("");
   const [unverifiedEmail, setUnverifiedEmail] = createSignal(false);

@@ -1,6 +1,6 @@
 import { Show, createSignal, type JSX } from "solid-js";
 import { z } from "zod";
-import EmailSchema from "../validations/email";
+import EmailSchema, { type EmailSchemaType } from "../validations/email";
 
 const MagicLinkForm = () => {
   const [verificationErr, setVerificationErr] = createSignal("");
@@ -8,10 +8,7 @@ const MagicLinkForm = () => {
   const [verificationSuccess, setVerificationSuccess] = createSignal(false);
 
   const [validationIssue, setValidationIssue] =
-    createSignal<z.ZodFormattedError<
-      z.infer<typeof EmailSchema>,
-      string
-    > | null>(null);
+    createSignal<z.ZodFormattedError<EmailSchemaType, string> | null>(null);
 
   const handleSubmit: JSX.EventHandlerUnion<
     HTMLFormElement,

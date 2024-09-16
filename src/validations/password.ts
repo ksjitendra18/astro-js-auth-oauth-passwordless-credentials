@@ -1,4 +1,4 @@
-import { object, string } from "zod";
+import { object, string, z } from "zod";
 
 const PasswordSchema = string({ required_error: "Password is required" })
   .min(8, "Password should be more than 8 characters")
@@ -7,5 +7,7 @@ const PasswordSchema = string({ required_error: "Password is required" })
     message:
       "Password must contain a lowercase letter, uppercase letter, number, and symbol",
   });
+
+export type PasswordSchemaType = z.infer<typeof PasswordSchema>;
 
 export default PasswordSchema;

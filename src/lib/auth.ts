@@ -2,7 +2,7 @@ import { and, eq } from "drizzle-orm";
 import { db } from "../db/index";
 import {
   loginLogs,
-  oauthTokens,
+  oauthProviders,
   passwords,
   sessions,
   users,
@@ -34,6 +34,7 @@ type NewLogsArgs = {
   userId: string;
   sessionId: string;
   ip: string;
+  strategy: "github" | "google" | "credentials" | "magic_link";
 };
 
 type TokenArgs = {
@@ -71,17 +72,93 @@ export const createUser = async ({
   }
 };
 
-export const checkUserExists = async ({ email, strategy }: UserExistArgs) => {
+export const checkUserExists = async ({ email }: UserExistArgs) => {
   const userExists = await db.query.users.findFirst({
-    where: eq(users.email, email),
+    columns: {
+      id: true,
+      email: true,
+      twoFactorEnabled: true,
+    },
+    where: and(
+      eq(users.email, email),
+      eq(users.isBlocked, false),
+      eq(users.isDeleted, false)
+    ),
+  });
+
+  return userExists;
+};
+
+export const checkOauthUserExists = async ({
+  email,
+  providerId,
+  strategy,
+}: {
+  email: string;
+  providerId: string;
+  strategy: "github" | "google";
+}) => {
+  const userExists = await db.query.users.findFirst({
+    where: and(
+      eq(users.email, email),
+      eq(users.isBlocked, false),
+      eq(users.isDeleted, false)
+    ),
+    columns: {
+      id: true,
+      email: true,
+      twoFactorEnabled: true,
+    },
     with: {
-      oauthTokens: {
-        where: eq(oauthTokens.strategy, strategy),
+      oauthProviders: {
+        where: and(
+          eq(oauthProviders.providerUserId, String(providerId)),
+          eq(oauthProviders.strategy, strategy)
+        ),
       },
     },
   });
 
-  return userExists;
+  const oauthProviderData = await db.query.oauthProviders.findFirst({
+    where: and(
+      eq(oauthProviders.providerUserId, String(providerId)),
+      eq(oauthProviders.strategy, strategy)
+    ),
+    with: {
+      user: {
+        columns: {
+          id: true,
+          email: true,
+        },
+      },
+    },
+  });
+
+  return { userExists, oauthProviderData };
+};
+
+export const createOauthProvider = async ({
+  providerId,
+  userId,
+  email,
+  strategy,
+}: {
+  providerId: string | number;
+  userId: string;
+  email: string;
+  strategy: "github" | "google";
+}) => {
+  try {
+    await db.insert(oauthProviders).values({
+      providerUserId: String(providerId),
+      userId,
+      strategy,
+      email,
+    });
+  } catch (error) {
+    console.log("Error while creating oauth provider", error);
+    throw new Error("Error while creating oauth provider");
+  }
 };
 
 export const createSession = async ({ userId }: NewSessionArgs) => {
@@ -103,50 +180,12 @@ export const createSession = async ({ userId }: NewSessionArgs) => {
   }
 };
 
-export const saveOauthToken = async ({
-  accessToken,
-  refreshToken,
-  strategy,
-  userId,
-}: TokenArgs) => {
-  try {
-    await db.insert(oauthTokens).values({
-      userId,
-      strategy: strategy,
-      accessToken,
-      refreshToken,
-    });
-  } catch (error) {
-    throw new Error("Error while creating token");
-  }
-};
-
-export const updateOauthToken = async ({
-  accessToken,
-  refreshToken,
-  strategy,
-  userId,
-}: TokenArgs) => {
-  try {
-    await db
-      .update(oauthTokens)
-      .set({
-        accessToken,
-        refreshToken,
-      })
-      .where(
-        and(eq(oauthTokens.userId, userId), eq(oauthTokens.strategy, strategy))
-      );
-  } catch (error) {
-    throw new Error("Error while creating token");
-  }
-};
-
 export const createLoginLog = async ({
   userAgent,
   userId,
   sessionId,
   ip,
+  strategy,
 }: NewLogsArgs) => {
   if (!userAgent) {
     throw new Error("Internal Error");
@@ -158,6 +197,7 @@ export const createLoginLog = async ({
       userId,
       sessionId,
       ip,
+      strategy,
       os: `${parser.getOSName()} ${parser.getOSVersion()}`,
       browser: `${parser.getBrowserName()} ${parser.getBrowserVersion()}`,
       device: parser.getPlatformType(),
@@ -189,7 +229,7 @@ export const createPassword = async ({
 const generateTokenId = customAlphabet("0123456789", 6);
 const generateVerificationId = customAlphabet(
   "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
-  24
+  64
 );
 
 export const sendVerificationMail = async ({ email }: { email: string }) => {
@@ -412,7 +452,8 @@ export const sendMagicLink = async ({
           Authorization: `Bearer ${import.meta.env.RESEND_API_KEY}`,
         },
         body: JSON.stringify({
-          from: import.meta.env.FROM_EMAIL,
+          name: "Astro Auth",
+          from: `${import.meta.env.FROM_EMAIL}`,
           to: email,
           subject: `Log in to Astro Auth`,
           html: `<div>Log in as ${email} </div>

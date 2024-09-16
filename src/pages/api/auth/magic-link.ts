@@ -1,7 +1,4 @@
 import type { APIContext } from "astro";
-import { and, eq } from "drizzle-orm";
-import { db } from "../../../db";
-import { users } from "../../../db/schema";
 import { sendMagicLink } from "../../../lib/auth";
 import EmailSchema from "../../../validations/email";
 

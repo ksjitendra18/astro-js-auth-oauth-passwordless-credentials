@@ -1,13 +1,13 @@
 import type { APIContext } from "astro";
 
 import {
+  checkOauthUserExists,
   checkUserExists,
   create2FASession,
   createLoginLog,
+  createOauthProvider,
   createSession,
   createUser,
-  saveOauthToken,
-  updateOauthToken,
 } from "../../../../lib/auth";
 
 type EmailRes = (
@@ -26,6 +26,9 @@ type EmailRes = (
 )[];
 
 import queryString from "query-string";
+import { db } from "../../../../db";
+import { oauthProviders } from "../../../../db/schema";
+import { eq } from "drizzle-orm";
 
 export async function GET({ request, clientAddress, cookies }: APIContext) {
   const code = new URL(request.url).searchParams?.get("code");
@@ -74,6 +77,8 @@ export async function GET({ request, clientAddress, cookies }: APIContext) {
 
     const fetchUserRes = await fetchUser.json();
 
+    console.log("fetch user res", fetchUserRes);
+
     const fetchEmail = await fetch("https://api.github.com/user/emails", {
       headers: {
         accept: "application/json",
@@ -101,37 +106,32 @@ export async function GET({ request, clientAddress, cookies }: APIContext) {
       }
     };
 
-    const userExists = await checkUserExists({
-      email: userEmail(),
+    const { userExists, oauthProviderData } = await checkOauthUserExists({
+      providerId: fetchUserRes.id,
       strategy: "github",
+      email: userEmail(),
     });
 
-    if (!userExists) {
-      const { userId } = await createUser({
-        email: userEmail(),
-        fullName: fetchUserRes.name,
-        profilePhoto: fetchUserRes.avatar_url,
-        userName: fetchUserRes.login,
-        emailVerified: true,
-      });
-
-      await saveOauthToken({
-        userId: userId,
-        strategy: "github",
-        accessToken: fetchTokenRes.access_token,
-        refreshToken: fetchTokenRes.access_token,
-      });
+    if (oauthProviderData) {
+      if (oauthProviderData.email !== userEmail()) {
+        await db
+          .update(oauthProviders)
+          .set({
+            email: userEmail(),
+          })
+          .where(eq(oauthProviders.providerUserId, String(fetchUserRes.id)));
+      }
 
       const { sessionId, expiresAt } = await createSession({
-        userId: userId,
+        userId: oauthProviderData.userId,
       });
 
-      // log
       await createLoginLog({
         sessionId,
         userAgent: request.headers.get("user-agent"),
-        userId: userId,
+        userId: oauthProviderData.userId,
         ip: clientAddress ?? "dev",
+        strategy: "github",
       });
 
       cookies.delete("github_oauth_state", { path: "/" });
@@ -145,30 +145,67 @@ export async function GET({ request, clientAddress, cookies }: APIContext) {
           }`,
         },
       });
-    } else {
-      if (userExists.oauthTokens.length > 0) {
-        // oauth strategy exists
-        // update token
-
-        await updateOauthToken({
-          userId: userExists.id,
-          strategy: "github",
-          accessToken: fetchTokenRes.access_token,
-          refreshToken: fetchTokenRes.access_token,
-        });
-      } else {
-        await saveOauthToken({
-          userId: userExists.id,
-          strategy: "github",
-          accessToken: fetchTokenRes.access_token,
-          refreshToken: fetchTokenRes.access_token,
-        });
-      }
     }
+
+    if (!userExists) {
+      const { userId } = await createUser({
+        email: userEmail(),
+        fullName: fetchUserRes.name,
+        profilePhoto: fetchUserRes.avatar_url,
+        userName: fetchUserRes.login,
+        emailVerified: true,
+      });
+
+      await createOauthProvider({
+        providerId: fetchUserRes.id,
+        userId,
+        strategy: "github",
+        email: userEmail(),
+      });
+
+      const { sessionId, expiresAt } = await createSession({
+        userId: userId,
+      });
+
+      await createLoginLog({
+        sessionId,
+        userAgent: request.headers.get("user-agent"),
+        userId: userId,
+        ip: clientAddress ?? "dev",
+        strategy: "github",
+      });
+
+      cookies.delete("github_oauth_state", { path: "/" });
+
+      return new Response(null, {
+        status: 302,
+        headers: {
+          Location: "/profile",
+          "Set-Cookie": `app_auth_token=${sessionId}; Path=/; HttpOnly; SameSite=Lax;Expires=${expiresAt.toUTCString()}; Secure=${
+            import.meta.env.PROD
+          }`,
+        },
+      });
+    } else if (!oauthProviderData) {
+      await createOauthProvider({
+        providerId: fetchUserRes.id,
+        userId: userExists.id,
+        strategy: "github",
+        email: userEmail(),
+      });
+    }
+
     cookies.delete("github_oauth_state", { path: "/" });
 
     if (userExists.twoFactorEnabled) {
       const faSess = await create2FASession(userExists.id);
+
+      cookies.set("login_method", "github", {
+        path: "/",
+        httpOnly: true,
+        sameSite: "lax",
+        secure: import.meta.env.PROD,
+      });
 
       cookies.set("2fa_auth", faSess, {
         path: "/",
@@ -197,6 +234,7 @@ export async function GET({ request, clientAddress, cookies }: APIContext) {
       userAgent: request.headers.get("user-agent"),
       userId: userExists.id,
       ip: clientAddress ?? "dev",
+      strategy: "github",
     });
 
     cookies.set("app_auth_token", sessionId, {

@@ -1,4 +1,4 @@
-import { object, string } from "zod";
+import { object, string, z } from "zod";
 
 const LoginSchema = object({
   email: string({ required_error: "Email is required" })
@@ -13,4 +13,5 @@ const LoginSchema = object({
     }),
 });
 
+export type LoginSchemaType = z.infer<typeof LoginSchema>;
 export default LoginSchema;

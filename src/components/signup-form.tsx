@@ -1,13 +1,10 @@
 import { Show, createSignal, type JSX } from "solid-js";
 import { z } from "zod";
-import SignupSchema from "../validations/signup";
+import SignupSchema, { type SignupSchemaType } from "../validations/signup";
 
 const SignupForm = () => {
   const [validationIssue, setValidationIssue] =
-    createSignal<z.ZodFormattedError<
-      z.infer<typeof SignupSchema>,
-      string
-    > | null>(null);
+    createSignal<z.ZodFormattedError<SignupSchemaType, string> | null>(null);
 
   const [loading, setLoading] = createSignal(false);
   const [error, setError] = createSignal("");
