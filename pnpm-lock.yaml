@@ -38,6 +38,9 @@ importers:
       bowser:
         specifier: ^2.11.0
         version: 2.11.0
+      drizzle-orm:
+        specifier: ^0.33.0
+        version: 0.33.0(@libsql/client@0.11.0)
       nanoid:
         specifier: ^5.0.7
         version: 5.0.7
@@ -72,9 +75,6 @@ importers:
       drizzle-kit:
         specifier: ^0.24.2
         version: 0.24.2
-      drizzle-orm:
-        specifier: ^0.33.0
-        version: 0.33.0(@libsql/client@0.11.0)
 
 packages:
 
@@ -1938,7 +1938,6 @@ packages:
 
   libsql@0.4.5:
     resolution: {integrity: sha512-sorTJV6PNt94Wap27Sai5gtVLIea4Otb2LUiAUyr3p6BPOScGMKGt5F1b5X/XgkNtcsDKeX5qfeBDj+PdShclQ==}
-    cpu: [x64, arm64, wasm32]
     os: [darwin, linux, win32]
 
   lilconfig@2.1.0:
