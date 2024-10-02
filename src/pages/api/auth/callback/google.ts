@@ -1,17 +1,16 @@
 import type { APIContext } from "astro";
 
+import { eq } from "drizzle-orm";
+import { db } from "../../../../db";
+import { oauthProviders } from "../../../../db/schema";
 import {
   checkOauthUserExists,
-  checkUserExists,
   create2FASession,
   createLoginLog,
   createOauthProvider,
   createSession,
-  createUser,
+  createUser
 } from "../../../../lib/auth";
-import { oauthProviders } from "../../../../db/schema";
-import { db } from "../../../../db";
-import { eq } from "drizzle-orm";
 
 export async function GET({ request, clientAddress, cookies }: APIContext) {
   const code = new URL(request.url).searchParams?.get("code");

@@ -2,12 +2,11 @@ import type { APIContext } from "astro";
 
 import {
   checkOauthUserExists,
-  checkUserExists,
   create2FASession,
   createLoginLog,
   createOauthProvider,
   createSession,
-  createUser,
+  createUser
 } from "../../../../lib/auth";
 
 type EmailRes = (
@@ -25,10 +24,10 @@ type EmailRes = (
     }
 )[];
 
+import { eq } from "drizzle-orm";
 import queryString from "query-string";
 import { db } from "../../../../db";
 import { oauthProviders } from "../../../../db/schema";
-import { eq } from "drizzle-orm";
 
 export async function GET({ request, clientAddress, cookies }: APIContext) {
   const code = new URL(request.url).searchParams?.get("code");
@@ -77,7 +76,6 @@ export async function GET({ request, clientAddress, cookies }: APIContext) {
 
     const fetchUserRes = await fetchUser.json();
 
-    console.log("fetch user res", fetchUserRes);
 
     const fetchEmail = await fetch("https://api.github.com/user/emails", {
       headers: {
