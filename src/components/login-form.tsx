@@ -165,7 +165,6 @@ const LoginForm = () => {
             >
               <Show when={loading()}>
                 <img src="/spinner.svg" class="animate-spin fill-white mr-2" />{" "}
-                Log in...
               </Show>
               <Show when={!loading()}>Log in</Show>
             </button>

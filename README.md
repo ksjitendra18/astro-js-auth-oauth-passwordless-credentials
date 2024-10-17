@@ -2,6 +2,7 @@
 
 This repo is for the series of blog post covering Authentication in Astro.
 
+Main branch contains the latest updated code.
 
 ## Technolgies Used
 
