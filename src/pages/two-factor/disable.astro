@@ -9,7 +9,7 @@ if (!userId) {
   return Astro.redirect("/login");
 }
 
-const userInfok = await getUserById(userId);
+const userInfo = await getUserById(userId);
 
 if (!userInfo) {
   return Astro.redirect("/login");
