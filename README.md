@@ -25,7 +25,17 @@ To get started, clone the repo and run the following commands:
 npm install
 ``` 
 
-Now 
+Now copy the `.env.example` file to `.env` and fill in the values.
+
+Please refer to blog post for github and google oauth setup.
+
+You will need Turso DB and Redis for it. You can use sqlite or choose other database but you will have to make changes in the schema. For Redis, I am using Upstash Redis.
+
+To run the project, run the following command:
+
+```bash
+npm run dev 
+``` 
 
 
 Here are the strategies with their starter code, finished code and also the related blog post.
