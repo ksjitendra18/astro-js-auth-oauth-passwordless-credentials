@@ -6,6 +6,7 @@ import MainLayout from "../../layout/main-layout.astro";
 const magicLinkVerificationId = Astro.cookies.get(
   AUTH_COOKIES.MAGIC_LINK_VERIFICATION_ID
 )?.value;
+
 ---
 
 <MainLayout title="Magic Link" description="Log in via magic link">

@@ -211,7 +211,7 @@ export const AccountPage = ({
         </div>
         {userAccountInfo.twoFactorEnabled ? (
           <>
-            <div class="flex gap-5 mt-10 items-center">
+            <div class="flex flex-col md:flex-row gap-5 mt-10 items-center">
               <a
                 href="/two-factor"
                 class="bg-black  w-fit flex items-center justify-center px-10 py-3  md:w-fit text-center rounded-md text-white "
@@ -370,10 +370,15 @@ export const AccountPage = ({
 
               {currentSessionId !== log.sessionId && (
                 <button
-                  data-sid={log.sessionId}
+                  disabled={revokingSession()}
+                  onClick={() => revokeSession(log.sessionId!)}
                   class="w-full mt-2 text-red-500 hover:text-red-700 text-sm font-medium py-2 border border-red-500 rounded-md"
                 >
-                  Revoke Access
+                  {revokingSession() ? (
+                    <Loader2 class="animate-spin mx-auto" />
+                  ) : (
+                    "Revoke Access"
+                  )}
                 </button>
               )}
             </div>

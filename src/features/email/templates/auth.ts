@@ -74,7 +74,7 @@ export const sendMagicLink = async ({
       <div>The link is valid for 2 hours</div>
       <div>You have received this email because you or someone tried to signup on the website </div>
       <div>If you didn't signup, kindly ignore this email.</div>
-      <div>For support contact us at contact[at]example.com</div>
+      <div>For support contact us at ${SUPPORT_EMAIL}</div>
       `,
     });
 

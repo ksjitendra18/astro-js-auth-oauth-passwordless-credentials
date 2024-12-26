@@ -5,8 +5,8 @@ const isUserLoggedIn = !!Astro.locals.userId;
 ---
 
 <MainLayout title="Astro Auth" description="Auth in Astro">
-  <div class="flex mt-32 items-center justify-center flex-col">
-    <h1 class="text-3xl font-bold">Exploring auth in Astro</h1>
+  <div class="flex md:mt-32 mt-20 items-center justify-center flex-col">
+    <h1 class="text-3xl font-bold text-center">Exploring auth in Astro</h1>
 
     {
       isUserLoggedIn ? (
