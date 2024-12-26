@@ -31,6 +31,8 @@ Please refer to blog post for github and google oauth setup.
 
 You will need Turso DB and Redis for it. You can use sqlite or choose other database but you will have to make changes in the schema. For Redis, I am using Upstash Redis.
 
+For emails you can use any email service which provides HTTP API.I am using Resend for sending emails.. If you provider doesn't support HTTP API, you will have to make changes in the code 
+
 To run the project, run the following command:
 
 ```bash
