@@ -1,13 +1,15 @@
 import type { APIContext } from "astro";
-
+import queryString from "query-string";
 import {
-  checkOauthUserExists,
-  create2FASession,
-  createLoginLog,
+  getOauthUserData,
   createOauthProvider,
-  createSession,
-  createUser
-} from "../../../../lib/auth";
+  createUser,
+  updateOauthUserEmail,
+} from "../../../../features/auth/services/user";
+import { createSession } from "../../../../features/auth/services/session";
+import { createLoginLog } from "../../../../features/auth/services/logs";
+import { create2FASession } from "../../../../features/auth/services/two-factor";
+import { AUTH_COOKIES } from "../../../../features/auth/constants";
 
 type EmailRes = (
   | {
@@ -24,19 +26,15 @@ type EmailRes = (
     }
 )[];
 
-import { eq } from "drizzle-orm";
-import queryString from "query-string";
-import { db } from "../../../../db";
-import { oauthProviders } from "../../../../db/schema";
-
 export async function GET({ request, clientAddress, cookies }: APIContext) {
-  const code = new URL(request.url).searchParams?.get("code");
-  const state = new URL(request.url).searchParams?.get("state");
+  const searchParams = new URL(request.url).searchParams;
+  const code = searchParams?.get("code");
+  const state = searchParams?.get("state");
 
-  const storedState = cookies.get("github_oauth_state")?.value;
+  const storedState = cookies.get(AUTH_COOKIES.GITHUB_OAUTH_STATE)?.value;
 
   if (storedState !== state || !code) {
-    cookies.delete("github_oauth_state", { path: "/" });
+    cookies.delete(AUTH_COOKIES.GITHUB_OAUTH_STATE, { path: "/" });
 
     return new Response(null, {
       status: 302,
@@ -57,7 +55,7 @@ export async function GET({ request, clientAddress, cookies }: APIContext) {
       },
     });
 
-    const fetchToken = await fetch(tokenUrl, {
+    const tokenResponse = await fetch(tokenUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -65,22 +63,24 @@ export async function GET({ request, clientAddress, cookies }: APIContext) {
       },
     });
 
-    const fetchTokenRes = await fetchToken.json();
+    const tokenData = await tokenResponse.json();
 
-    const fetchUser = await fetch("https://api.github.com/user", {
-      headers: {
-        accept: "application/json",
-        Authorization: `Bearer ${fetchTokenRes.access_token}`,
-      },
-    });
+    const oauthProviderUserResponse = await fetch(
+      "https://api.github.com/user",
+      {
+        headers: {
+          accept: "application/json",
+          Authorization: `Bearer ${tokenData.access_token}`,
+        },
+      }
+    );
 
-    const fetchUserRes = await fetchUser.json();
-
+    const oauthProviderUserData = await oauthProviderUserResponse.json();
 
     const fetchEmail = await fetch("https://api.github.com/user/emails", {
       headers: {
         accept: "application/json",
-        Authorization: `Bearer ${fetchTokenRes.access_token}`,
+        Authorization: `Bearer ${tokenData.access_token}`,
       },
     });
 
@@ -104,58 +104,23 @@ export async function GET({ request, clientAddress, cookies }: APIContext) {
       }
     };
 
-    const { userExists, oauthProviderData } = await checkOauthUserExists({
-      providerId: fetchUserRes.id,
+    const { userData, oauthData } = await getOauthUserData({
+      providerId: oauthProviderUserData.id,
       strategy: "github",
       email: userEmail(),
     });
 
-    if (oauthProviderData) {
-      if (oauthProviderData.email !== userEmail()) {
-        await db
-          .update(oauthProviders)
-          .set({
-            email: userEmail(),
-          })
-          .where(eq(oauthProviders.providerUserId, String(fetchUserRes.id)));
-      }
-
-      const { sessionId, expiresAt } = await createSession({
-        userId: oauthProviderData.userId,
-      });
-
-      await createLoginLog({
-        sessionId,
-        userAgent: request.headers.get("user-agent"),
-        userId: oauthProviderData.userId,
-        ip: clientAddress ?? "dev",
-        strategy: "github",
-      });
-
-      cookies.delete("github_oauth_state", { path: "/" });
-
-      return new Response(null, {
-        status: 302,
-        headers: {
-          Location: "/profile",
-          "Set-Cookie": `app_auth_token=${sessionId}; Path=/; HttpOnly; SameSite=Lax;Expires=${expiresAt.toUTCString()}; Secure=${
-            import.meta.env.PROD
-          }`,
-        },
-      });
-    }
-
-    if (!userExists) {
+    if (!userData) {
       const { userId } = await createUser({
         email: userEmail(),
-        fullName: fetchUserRes.name,
-        profilePhoto: fetchUserRes.avatar_url,
-        userName: fetchUserRes.login,
+        fullName: oauthProviderUserData.name,
+        profilePhoto: oauthProviderUserData.avatar_url,
         emailVerified: true,
+        loginMethod: "github",
       });
 
       await createOauthProvider({
-        providerId: fetchUserRes.id,
+        providerId: oauthProviderUserData.id,
         userId,
         strategy: "github",
         email: userEmail(),
@@ -173,39 +138,53 @@ export async function GET({ request, clientAddress, cookies }: APIContext) {
         strategy: "github",
       });
 
-      cookies.delete("github_oauth_state", { path: "/" });
+      cookies.delete(AUTH_COOKIES.GITHUB_OAUTH_STATE, { path: "/" });
+
+      cookies.set(AUTH_COOKIES.SESSION_TOKEN, sessionId, {
+        path: "/",
+        httpOnly: true,
+        expires: expiresAt,
+        secure: import.meta.env.PROD,
+        sameSite: "lax",
+      });
 
       return new Response(null, {
         status: 302,
         headers: {
           Location: "/profile",
-          "Set-Cookie": `app_auth_token=${sessionId}; Path=/; HttpOnly; SameSite=Lax;Expires=${expiresAt.toUTCString()}; Secure=${
-            import.meta.env.PROD
-          }`,
         },
       });
-    } else if (!oauthProviderData) {
+    } else if (userData && !oauthData) {
+      // remove this condition if you don't want automatic account linking
       await createOauthProvider({
-        providerId: fetchUserRes.id,
-        userId: userExists.id,
+        providerId: userData.id,
+        userId: userData.id,
         strategy: "github",
         email: userEmail(),
       });
+    } else {
+      // this is for the case user changes their email in github
+      // you can totally remove this if you don't want this functionality.
+      if (userData.oauthProviders[0].email !== userEmail()) {
+        await updateOauthUserEmail({
+          email: oauthProviderUserData.email,
+          userId: String(oauthProviderUserData.id),
+        });
+      }
     }
+    cookies.delete(AUTH_COOKIES.GITHUB_OAUTH_STATE, { path: "/" });
 
-    cookies.delete("github_oauth_state", { path: "/" });
+    if (userData.twoFactorEnabled) {
+      const faSess = await create2FASession(userData.id);
 
-    if (userExists.twoFactorEnabled) {
-      const faSess = await create2FASession(userExists.id);
-
-      cookies.set("login_method", "github", {
+      cookies.set(AUTH_COOKIES.LOGIN_METHOD, "github", {
         path: "/",
         httpOnly: true,
         sameSite: "lax",
         secure: import.meta.env.PROD,
       });
 
-      cookies.set("2fa_auth", faSess, {
+      cookies.set(AUTH_COOKIES.TWO_FA_AUTH, faSess, {
         path: "/",
         httpOnly: true,
         sameSite: "lax",
@@ -224,18 +203,18 @@ export async function GET({ request, clientAddress, cookies }: APIContext) {
     }
 
     const { sessionId, expiresAt } = await createSession({
-      userId: userExists.id,
+      userId: userData.id,
     });
 
     await createLoginLog({
       sessionId,
       userAgent: request.headers.get("user-agent"),
-      userId: userExists.id,
+      userId: userData.id,
       ip: clientAddress ?? "dev",
       strategy: "github",
     });
 
-    cookies.set("app_auth_token", sessionId, {
+    cookies.set(AUTH_COOKIES.SESSION_TOKEN, sessionId, {
       path: "/",
       httpOnly: true,
       expires: expiresAt,
@@ -250,9 +229,9 @@ export async function GET({ request, clientAddress, cookies }: APIContext) {
       },
     });
   } catch (error) {
-    console.log("error in github signup", error);
+    console.log("error in github callback", error);
 
-    cookies.delete("github_oauth_state", { path: "/" });
+    cookies.delete(AUTH_COOKIES.GITHUB_OAUTH_STATE, { path: "/" });
 
     return new Response(null, {
       status: 302,

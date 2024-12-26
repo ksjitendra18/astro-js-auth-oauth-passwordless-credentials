@@ -1,0 +1,27 @@
+---
+import { getUserById } from "../../features/auth/services/user";
+import MainLayout from "../../layout/main-layout.astro";
+import { TwoFactorDisableForm } from "../../features/auth/components/two-factor-disable-form";
+
+const userId = Astro.locals?.userId;
+
+if (!userId) {
+  return Astro.redirect("/login");
+}
+
+const userInfok = await getUserById(userId);
+
+if (!userInfo) {
+  return Astro.redirect("/login");
+}
+
+if (!userInfo.twoFactorEnabled) {
+  return Astro.redirect("/account");
+}
+---
+
+<MainLayout title="Disable Two Factor" description="Disable Two Factor">
+  <h1 class="text-3xl mt-32 font-bold text-center">Disable Two Factor</h1>
+
+  <TwoFactorDisableForm client:load />
+</MainLayout>

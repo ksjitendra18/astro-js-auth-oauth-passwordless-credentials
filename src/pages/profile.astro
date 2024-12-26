@@ -1,31 +1,22 @@
 ---
-import { eq, and, gte } from "drizzle-orm";
 import MainLayout from "../layout/main-layout.astro";
-import { sessions } from "../db/schema";
-import { db } from "../db";
+import { getSessionInfo } from "../features/auth/services/session";
+import { getUserProfile } from "../features/auth/services/user";
+import { AUTH_COOKIES } from "../features/auth/constants";
 
-const authToken = Astro.cookies.get("app_auth_token")?.value;
+const sessionToken = Astro.cookies.get(AUTH_COOKIES.SESSION_TOKEN)?.value;
 
-if (!authToken) {
+const sessionInfo = await getSessionInfo(sessionToken);
+
+if (!sessionInfo || !sessionInfo.user) {
   return Astro.redirect("/login");
 }
 
-const userInfo = await db.query.sessions.findFirst({
-  where: and(
-    eq(sessions.id, authToken),
-    gte(sessions.expiresAt, new Date().getTime())
-  ),
-  columns:{id: true},
-  with: {
-    user: {
-      columns:{
-        fullName: true,
-        email: true,
-        userName: true,
-      }
-    },
-  },
-});
+const userProfileInfo = await getUserProfile(sessionInfo.user.id);
+
+if (!userProfileInfo) {
+  return Astro.redirect("/login");
+}
 ---
 
 <MainLayout title="Profile" description="Profile">
@@ -44,7 +35,7 @@ const userInfo = await db.query.sessions.findFirst({
         class="border-2 border-slate-400 rounded-md px-2 py-3 w-full"
         name="email"
         placeholder="Email"
-        value={userInfo?.user?.email}
+        value={userProfileInfo.email}
         id="email"
         readonly
       />
@@ -54,17 +45,8 @@ const userInfo = await db.query.sessions.findFirst({
         class="border-2 border-slate-400 rounded-md px-2 py-3 w-full"
         name="fullName"
         placeholder="Your Full Name"
-        value={userInfo?.user?.fullName}
+        value={userProfileInfo.fullName}
         id="fullName"
-      />
-      <label class="block mt-5 text-gray-600" for="userName">User Name</label>
-      <input
-        type="text"
-        class="border-2 border-slate-400 rounded-md px-2 py-3 w-full"
-        name="userName"
-        id="userName"
-        value={userInfo?.user?.userName}
-        placeholder="username"
       />
 
       <div class="flex justify-end my-5">
@@ -82,11 +64,10 @@ const userInfo = await db.query.sessions.findFirst({
     e.preventDefault();
 
     const formData = new FormData(e.target as HTMLFormElement);
-    const name = formData.get("fullName") as string;
 
     const res = await fetch("/api/profile", {
       method: "POST",
-      body: formData,
+      body: JSON.stringify(Object.fromEntries(formData)),
     });
 
     const resData = await res.json();

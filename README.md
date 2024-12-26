@@ -2,7 +2,7 @@
 
 This repo is for the series of blog post covering Authentication in Astro.
 
-Main branch contains the latest updated code.
+Main branch contains the latest updated code. If you're following the blog post, please use the specific branch for the post.
 
 ## Technolgies Used
 
@@ -13,9 +13,20 @@ Main branch contains the latest updated code.
 - Solid.js
 - Zod
 - Database session strategy for auth persistence
-- Bcrypt for password encryption
+- Argon2 for password encryption
 
 I am not using any external auth library for this guide. At the moment of writing, Auth.js doesn't support Astro. In a separate blog post I will do all these authentication strategy through Lucia Auth.
+
+## Getting Started
+
+To get started, clone the repo and run the following commands:
+
+```bash
+npm install
+``` 
+
+Now 
+
 
 Here are the strategies with their starter code, finished code and also the related blog post.
 

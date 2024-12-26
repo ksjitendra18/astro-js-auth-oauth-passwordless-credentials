@@ -1,11 +1,12 @@
-import { createId } from "@paralleldrive/cuid2";
 import type { APIContext } from "astro";
 import queryString from "query-string";
+import { generateRandomToken } from "../../../lib/random-string";
+import { AUTH_COOKIES } from "../../../features/auth/constants";
 
 export async function GET({ cookies }: APIContext) {
-  const githubOauthState = createId();
+  const githubOauthState = generateRandomToken(32);
 
-  cookies.set("github_oauth_state", githubOauthState, {
+  cookies.set(AUTH_COOKIES.GITHUB_OAUTH_STATE, githubOauthState, {
     path: "/",
     httpOnly: true,
     sameSite: "lax",

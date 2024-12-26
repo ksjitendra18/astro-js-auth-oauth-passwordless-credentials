@@ -1,27 +1,38 @@
 import type { APIContext } from "astro";
-import { eq } from "drizzle-orm";
-import { db } from "../../../db";
-import { users } from "../../../db/schema";
-import SignupSchema from "../../../validations/signup";
+
+import { createPassword } from "../../../features/auth/services/password";
 import {
-  createPassword,
   createUser,
-  sendVerificationMail,
-} from "../../../lib/auth";
+  getUserByEmail,
+} from "../../../features/auth/services/user";
+import { SignupSchema } from "../../../features/auth/validations/signup";
+import { sendVerificationMail } from "../../../features/email/templates/auth";
+import { TokenBucketRateLimiter } from "../../../features/ratelimit/services";
 
-export async function POST({ request }: APIContext) {
+export async function POST({ request, clientAddress }: APIContext) {
   try {
-    const {
-      name,
-      email,
-      password,
-    }: { name: string; email: string; password: string } = await request.json();
+    const rateLimiter = new TokenBucketRateLimiter(
+      "auth:signup",
+      3,
+      0.0166,
+      3600
+    );
 
-    const parsedData = SignupSchema.safeParse({
-      name,
-      email,
-      password,
-    });
+    const ratelimitResponse = await rateLimiter.checkLimit(clientAddress);
+
+    if (!ratelimitResponse.allowed) {
+      return Response.json(
+        {
+          error: "rate_limit",
+          message: "Too many requests. Please try again later.",
+        },
+        { status: 429 }
+      );
+    }
+
+    const requestBody = await request.json();
+
+    const parsedData = SignupSchema.safeParse(requestBody);
 
     if (!parsedData.success) {
       return Response.json(
@@ -33,12 +44,12 @@ export async function POST({ request }: APIContext) {
       );
     }
 
-    const userExists = await db.query.users.findFirst({
-      where: eq(users.email, email),
-      columns: { id: true },
+    const userInfo = await getUserByEmail({
+      email: parsedData.data.email,
+      shouldNormalizeEmail: true,
     });
 
-    if (userExists) {
+    if (userInfo) {
       return Response.json(
         {
           error: "existing_user",
@@ -48,29 +59,37 @@ export async function POST({ request }: APIContext) {
       );
     }
 
+    const { email, name, password } = parsedData.data;
+
     const newUser = await createUser({
-      email,
+      email: email,
       fullName: name,
       profilePhoto: "",
-      userName: email.split("@")[0],
       emailVerified: false,
+      loginMethod: "password",
     });
 
-    await createPassword({ userId: newUser.userId, password });
+    await createPassword({
+      userId: newUser.userId,
+      password: password,
+    });
 
-    // send mail
-    const verificationResponse = await sendVerificationMail({ email });
-    if (verificationResponse) {
+    const verificationMailResponse = await sendVerificationMail({ email });
+
+    if (!verificationMailResponse.allowed) {
       return Response.json(
-        { data: { id: verificationResponse.verificationId } },
-        { status: 201 }
+        {
+          error: "rate_limit",
+          message: `Too many requests. Please try again later.`,
+        },
+        { status: 429 }
       );
-    } else {
-      console.log("error while sending the mail");
-      await db.delete(users).where(eq(users.email, email));
+    }
+
+    if (verificationMailResponse.verificationId) {
       return Response.json(
-        { error: "email_error", message: "Error while sending email" },
-        { status: 500 }
+        { data: { id: verificationMailResponse.verificationId } },
+        { status: 201 }
       );
     }
   } catch (error) {

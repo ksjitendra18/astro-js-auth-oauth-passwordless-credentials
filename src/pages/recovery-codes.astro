@@ -1,80 +1,67 @@
 ---
-import { eq } from "drizzle-orm";
-import { db } from "../db";
-import { recoveryCodes, users } from "../db/schema";
 import MainLayout from "../layout/main-layout.astro";
-import { aesDecrypt } from "../lib/encrypt-decrypt";
-import { EncryptionPurpose } from "../lib/encrypt-decrypt";
+import { aesDecrypt, EncryptionPurpose } from "../lib/aes";
+import { getRecoveryCodes } from "../features/auth/services/recovery-codes";
+import { getUserById } from "../features/auth/services/user";
 const userId = Astro.locals?.userId;
 
 if (!userId) {
   return Astro.redirect("/login");
 }
 
-const existingUser = await db.query.users.findFirst({
-  where: eq(users.id, userId),
-  columns:{},
-  with: {
-    recoveryCodes: {
-      where: eq(recoveryCodes.isUsed, false),
-      columns: {
-        code: true,
-      },
-    },
-  },
-});
+const currentUser = await getUserById(userId);
 
-if (!existingUser) {
+if (!currentUser) {
   return Astro.redirect("/login");
 }
+
+const recoveryCodes = await getRecoveryCodes(userId);
 ---
 
-<MainLayout title="Recovery Code" description="Recovery Code">
-  <h1 class="my-10 text-3xl font-bold text-center">Recovery Code</h1>
+<MainLayout title="Recovery Codes" description="Recovery Codes">
+  <h1 class="my-10 text-3xl font-bold text-center">Recovery Codes</h1>
 
   {
-    existingUser.recoveryCodes.length === 0 && (
+    recoveryCodes.length === 0 ? (
       <div class="flex flex-col items-center justify-center">
         <p class="mt-5 mb-3 text-center">
           Enable Two Factor Auth to Set up Recovery Codes
         </p>
 
-        <a href="/account" class="bg-blue-600 px-4 py-2 text-white rounded-md">
+        <a href="/account" class="bg-black px-3 py-2 text-white rounded-md">
           Go to Account Page
         </a>
       </div>
+    ) : (
+      <div class="w-full max-w-xl mx-auto flex flex-col">
+        <div class="flex items-center gap-3">
+          <h3 class="my-5 text-xl font-bold">Exisiting Codes</h3>
+          <a
+            href="/api/auth/two-factor/recovery-codes/download"
+            class="bg-black text-white rounded-md px-3 py-2"
+          >
+            Download Code
+          </a>
+          <button
+            id="rotate-code"
+            class="bg-red-700 text-white rounded-md px-3 py-2"
+          >
+            Rotate Code
+          </button>
+        </div>
+        {recoveryCodes.map((code) => (
+          <p>{aesDecrypt(code.code, EncryptionPurpose.RECOVERY_CODE)}</p>
+        ))}
+      </div>
     )
   }
-
-  <div class="w-full max-w-xl mx-auto flex flex-col">
-    <div class="flex items-center gap-3">
-      <h3 class="my-5 text-xl font-bold">Exisiting Codes</h3>
-      <a
-        href="/api/auth/download-recovery-codes"
-        class="bg-blue-700 text-white rounded-md px-3 py-1"
-      >
-        Download Code
-      </a>
-      <button
-        id="rotate-code"
-        class="bg-red-700 text-white rounded-md px-3 py-1"
-      >
-        Rotate Code
-      </button>
-    </div>
-    {
-      existingUser.recoveryCodes.map((code) => (
-        <p>{aesDecrypt(code.code, EncryptionPurpose.RECOVERY_CODE)}</p>
-      ))
-    }
-  </div>
 </MainLayout>
 
 <script>
   const rotateCodeBtn = document.getElementById("rotate-code");
   const handleRotateCode = async () => {
-    await fetch("/api/auth/rotate-recovery-codes", {
-      method: "POST",
+    await fetch("/api/auth/two-factor/recovery-codes", {
+      method: "PUT",
     });
 
     window.location.reload();

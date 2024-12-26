@@ -1,0 +1,28 @@
+---
+import MainLayout from "../../layout/main-layout.astro";
+import { getSessionInfo } from "../../features/auth/services/session";
+import { getUserAccountInfo } from "../../features/auth/services/user";
+import { AccountPage } from "../../features/auth/components/account-page";
+import { AUTH_COOKIES } from "../../features/auth/constants";
+
+const sessionToken = Astro.cookies.get(AUTH_COOKIES.SESSION_TOKEN)?.value;
+
+const sessionInfo = await getSessionInfo(sessionToken);
+
+if (!sessionInfo || !sessionInfo.user) {
+  return Astro.redirect("/login");
+}
+
+const userAccountInfo = await getUserAccountInfo(sessionInfo.user.id);
+if (!userAccountInfo) {
+  return Astro.redirect("/login");
+}
+---
+
+<MainLayout title="Account Page" description="Account Page">
+  <AccountPage
+    userAccountInfo={userAccountInfo}
+    currentSessionId={sessionInfo.id}
+    client:load
+  />
+</MainLayout>

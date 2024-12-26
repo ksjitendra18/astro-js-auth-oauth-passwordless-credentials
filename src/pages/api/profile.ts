@@ -1,17 +1,35 @@
 import type { APIContext } from "astro";
-import { and, eq, gte } from "drizzle-orm";
-import { db } from "../../db";
-import { sessions, users } from "../../db/schema";
+import { getSessionInfo } from "../../features/auth/services/session";
+import { updateUserProfile } from "../../features/auth/services/user";
+import * as zod from "zod";
+import { AUTH_COOKIES } from "../../features/auth/constants";
+
+const RequestBodySchema = zod.object({
+  fullName: zod
+    .string({ required_error: "Full name is required" })
+    .min(2, { message: "Full name should be atleast 2 characters" }),
+});
 
 export async function POST({ request, cookies }: APIContext) {
-  const requestBody = await request.formData();
-
-  const fullName = requestBody.get("fullName");
-  const userName = requestBody.get("userName");
   try {
-    const authToken = cookies.get("app_auth_token")?.value;
+    const requestBody = await request.json();
 
-    if (!authToken) {
+    const parsedData = RequestBodySchema.safeParse(requestBody);
+
+    if (!parsedData.success) {
+      return Response.json(
+        { error: "validation_error", message: "Invalid data" },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    const sessionToken = cookies.get(AUTH_COOKIES.SESSION_TOKEN)?.value;
+
+    const sessionInfo = await getSessionInfo(sessionToken);
+
+    if (!sessionInfo || !sessionInfo.user) {
       return Response.json(
         { error: "authentication_error", message: "Log in" },
         {
@@ -20,39 +38,10 @@ export async function POST({ request, cookies }: APIContext) {
       );
     }
 
-    const sessionInfo = await db.query.sessions.findFirst({
-      where: and(
-        eq(sessions.id, authToken),
-        gte(sessions.expiresAt, new Date().getTime())
-      ),
-      columns: {
-        id: true,
-      },
-      with: {
-        user: {
-          columns: {
-            id: true,
-          },
-        },
-      },
+    updateUserProfile({
+      userId: sessionInfo.user.id,
+      fullName: parsedData.data.fullName,
     });
-
-    if (!sessionInfo || !sessionInfo.user) {
-      return Response.json(
-        { error: "authorization_error", message: "Log in" },
-        {
-          status: 403,
-        }
-      );
-    }
-
-    await db
-      .update(users)
-      .set({
-        fullName: fullName as string,
-        userName: userName as string,
-      })
-      .where(eq(users.id, sessionInfo.user?.id));
 
     return Response.json(
       { success: true, message: "Profile Updated Sucessfully" },
@@ -61,7 +50,7 @@ export async function POST({ request, cookies }: APIContext) {
       }
     );
   } catch (error) {
-    console.log("error while creating profile", error);
+    console.log("error while updating profile", error);
 
     return Response.json(
       {

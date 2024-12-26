@@ -1,26 +1,26 @@
 import type { APIContext } from "astro";
 
-import { eq } from "drizzle-orm";
-import { db } from "../../../../db";
-import { oauthProviders } from "../../../../db/schema";
+import { createLoginLog } from "../../../../features/auth/services/logs";
+import { createSession } from "../../../../features/auth/services/session";
+import { create2FASession } from "../../../../features/auth/services/two-factor";
 import {
-  checkOauthUserExists,
-  create2FASession,
-  createLoginLog,
   createOauthProvider,
-  createSession,
-  createUser
-} from "../../../../lib/auth";
+  createUser,
+  getOauthUserData,
+  updateOauthUserEmail,
+} from "../../../../features/auth/services/user";
+import { AUTH_COOKIES } from "../../../../features/auth/constants";
 
 export async function GET({ request, clientAddress, cookies }: APIContext) {
-  const code = new URL(request.url).searchParams?.get("code");
-  const state = new URL(request.url).searchParams?.get("state");
-  const storedState = cookies.get("google_oauth_state")?.value;
-  const codeVerifier = cookies.get("google_code_challenge")?.value;
+  const urlSearchParams = new URL(request.url).searchParams;
+  const code = urlSearchParams?.get("code");
+  const state = urlSearchParams?.get("state");
+  const storedState = cookies.get(AUTH_COOKIES.GOOGLE_OAUTH_STATE)?.value;
+  const codeVerifier = cookies.get(AUTH_COOKIES.GOOGLE_CODE_CHALLENGE)?.value;
 
   if (storedState !== state || !codeVerifier || !code) {
-    cookies.delete("google_oauth_state");
-    cookies.delete("google_code_challenge");
+    cookies.delete(AUTH_COOKIES.GOOGLE_OAUTH_STATE);
+    cookies.delete(AUTH_COOKIES.GOOGLE_CODE_CHALLENGE);
     return new Response(null, {
       status: 302,
       headers: {
@@ -40,7 +40,7 @@ export async function GET({ request, clientAddress, cookies }: APIContext) {
     formData.append("code", code);
     formData.append("code_verifier", codeVerifier);
 
-    const fetchToken = await fetch(tokenUrl, {
+    const tokenResponse = await fetch(tokenUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -48,36 +48,36 @@ export async function GET({ request, clientAddress, cookies }: APIContext) {
       body: formData,
     });
 
-    const fetchTokenRes = await fetchToken.json();
+    const tokenData = await tokenResponse.json();
 
-    const fetchUser = await fetch(
+    const oauthProviderUserResponse = await fetch(
       "https://www.googleapis.com/oauth2/v2/userinfo",
       {
-        headers: { Authorization: `Bearer ${fetchTokenRes.access_token}` },
+        headers: { Authorization: `Bearer ${tokenData.access_token}` },
       }
     );
-    const fetchUserRes = await fetchUser.json();
+    const oauthProviderUserData = await oauthProviderUserResponse.json();
 
-    const { userExists, oauthProviderData } = await checkOauthUserExists({
-      email: fetchUserRes.email,
-      providerId: fetchUserRes.id,
+    const { userData, oauthData } = await getOauthUserData({
+      email: oauthProviderUserData.email,
+      providerId: oauthProviderUserData.id,
       strategy: "google",
     });
 
-    if (!userExists) {
+    if (!userData) {
       const { userId } = await createUser({
-        email: fetchUserRes.email,
-        fullName: fetchUserRes.name,
-        profilePhoto: fetchUserRes.picture,
-        userName: fetchUserRes.email.split("@")[0],
+        email: oauthProviderUserData.email,
+        fullName: oauthProviderUserData.name,
+        profilePhoto: oauthProviderUserData.picture,
         emailVerified: true,
+        loginMethod: "google",
       });
 
       await createOauthProvider({
-        providerId: fetchUserRes.id,
+        providerId: oauthProviderUserData.id,
         userId: userId,
         strategy: "google",
-        email: fetchUserRes.email,
+        email: oauthProviderUserData.email,
       });
 
       const { sessionId, expiresAt } = await createSession({
@@ -92,51 +92,56 @@ export async function GET({ request, clientAddress, cookies }: APIContext) {
         strategy: "google",
       });
 
-      cookies.delete("google_oauth_state");
-      cookies.delete("google_code_challenge");
+      cookies.delete(AUTH_COOKIES.GOOGLE_OAUTH_STATE, { path: "/" });
+      cookies.delete(AUTH_COOKIES.GOOGLE_CODE_CHALLENGE, { path: "/" });
+
+      cookies.set(AUTH_COOKIES.SESSION_TOKEN, sessionId, {
+        path: "/",
+        httpOnly: true,
+        expires: expiresAt,
+        secure: import.meta.env.PROD,
+        sameSite: "lax",
+      });
 
       return new Response(null, {
         status: 302,
         headers: {
           Location: "/profile",
-          "Set-Cookie": `app_auth_token=${sessionId}; Path=/; HttpOnly; SameSite=Lax;Expires=${expiresAt.toUTCString()}; Secure=${
-            import.meta.env.PROD
-          }`,
         },
       });
-    } else if (userExists && !oauthProviderData) {
+      // link user
+      // remove this if you don't want automatic account linking
+    } else if (userData && !oauthData) {
       await createOauthProvider({
-        providerId: fetchUserRes.id,
-        userId: userExists.id,
+        providerId: oauthProviderUserData.id,
+        userId: userData.id,
         strategy: "google",
-        email: fetchUserRes.email,
+        email: oauthProviderUserData.email,
       });
     } else {
       // this is not required because hardly user will change their email. very rare chances
-      if (userExists.oauthProviders[0].email !== fetchUserRes.email) {
-        await db
-          .update(oauthProviders)
-          .set({
-            email: fetchUserRes.email,
-          })
-          .where(eq(oauthProviders.providerUserId, fetchUserRes.id));
+      if (userData.oauthProviders[0].email !== oauthProviderUserData.email) {
+        await updateOauthUserEmail({
+          email: oauthProviderUserData.email,
+          userId: String(oauthProviderUserData.id),
+        });
       }
     }
 
-    cookies.delete("google_oauth_state", { path: "/" });
-    cookies.delete("google_code_challenge", { path: "/" });
+    cookies.delete(AUTH_COOKIES.GOOGLE_OAUTH_STATE, { path: "/" });
+    cookies.delete(AUTH_COOKIES.GOOGLE_CODE_CHALLENGE, { path: "/" });
 
-    if (userExists.twoFactorEnabled) {
-      const faSess = await create2FASession(userExists.id);
+    if (userData.twoFactorEnabled) {
+      const faSess = await create2FASession(userData.id);
 
-      cookies.set("login_method", "google", {
+      cookies.set(AUTH_COOKIES.LOGIN_METHOD, "google", {
         path: "/",
         httpOnly: true,
         sameSite: "lax",
         secure: import.meta.env.PROD,
       });
 
-      cookies.set("2fa_auth", faSess, {
+      cookies.set(AUTH_COOKIES.TWO_FA_AUTH, faSess, {
         path: "/",
         httpOnly: true,
         sameSite: "lax",
@@ -155,18 +160,18 @@ export async function GET({ request, clientAddress, cookies }: APIContext) {
     }
 
     const { sessionId, expiresAt } = await createSession({
-      userId: userExists.id,
+      userId: userData.id,
     });
 
     await createLoginLog({
       sessionId,
       userAgent: request.headers.get("user-agent"),
-      userId: userExists.id,
+      userId: userData.id,
       ip: clientAddress ?? "dev",
       strategy: "google",
     });
 
-    cookies.set("app_auth_token", sessionId, {
+    cookies.set(AUTH_COOKIES.SESSION_TOKEN, sessionId, {
       path: "/",
       httpOnly: true,
       expires: expiresAt,
@@ -181,8 +186,9 @@ export async function GET({ request, clientAddress, cookies }: APIContext) {
       },
     });
   } catch (error) {
-    cookies.delete("google_oauth_state", { path: "/" });
-    cookies.delete("google_code_challenge", { path: "/" });
+    console.log("Error while google callback", error);
+    cookies.delete(AUTH_COOKIES.GOOGLE_OAUTH_STATE, { path: "/" });
+    cookies.delete(AUTH_COOKIES.GOOGLE_CODE_CHALLENGE, { path: "/" });
     return new Response(null, {
       status: 302,
       headers: {

@@ -1,27 +1,12 @@
 import { defineMiddleware } from "astro/middleware";
-import getUser from "./lib/getUser";
+import { getSessionInfo } from "./features/auth/services/session";
+import { AUTH_COOKIES } from "./features/auth/constants";
 
 export const onRequest = defineMiddleware(async (context, next) => {
-  const userInfo = await getUser(context.cookies.get("app_auth_token")?.value);
+  const sessionToken = context.cookies.get(AUTH_COOKIES.SESSION_TOKEN)?.value;
+  const sessionInfo = await getSessionInfo(sessionToken);
 
-  context.locals.userId = userInfo?.user?.id;
-
-  if (
-    context.url.pathname.includes("dashboard") ||
-    context.url.pathname.includes("account")
-  ) {
-    if (!userInfo || !userInfo.user) {
-      return context.redirect("/login");
-    } else {
-      return next();
-    }
-  }
-
-  if (context.url.pathname.includes("login")) {
-    if (userInfo?.user) {
-      return context.redirect("/");
-    }
-  }
+  context.locals.userId = sessionInfo?.user?.id;
 
   return next();
 });

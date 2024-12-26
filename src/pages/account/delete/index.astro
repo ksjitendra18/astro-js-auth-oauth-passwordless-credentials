@@ -1,0 +1,35 @@
+---
+import { getUserById } from "../../../features/auth/services/user";
+import MainLayout from "../../../layout/main-layout.astro";
+import { AccountDeletionForm } from "../../../features/auth/components/account-deletion-form";
+import redis from "../../../lib/redis";
+
+const userId = Astro.locals?.userId;
+
+if (!userId) {
+  return Astro.redirect("/login");
+}
+
+const userInfo = await getUserById(userId);
+
+if (!userInfo) {
+  return Astro.redirect("/login");
+}
+
+const deletionId = Astro.cookies.get("deletionId")?.value;
+
+let hasRecentlySentCode = false;
+if (deletionId) {
+  const data = await redis.get(deletionId);
+
+  if (data) {
+    hasRecentlySentCode = true;
+  }
+}
+---
+
+<MainLayout title="Delete Account" description="Delete Account">
+  <h1 class="text-3xl mt-32 font-bold text-center">Delete Account</h1>
+
+  <AccountDeletionForm email={userInfo.email} hasRecentlySentCode client:load />
+</MainLayout>

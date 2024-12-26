@@ -1,29 +1,90 @@
 ---
 import MainLayout from "../layout/main-layout.astro";
 
-const userIsLoggedIn = !!Astro.locals.userId;
+const isUserLoggedIn = !!Astro.locals.userId;
 ---
 
 <MainLayout title="Astro Auth" description="Auth in Astro">
-  <div class="flex h-[400px] items-center justify-center flex-col">
+  <div class="flex mt-32 items-center justify-center flex-col">
     <h1 class="text-3xl font-bold">Exploring auth in Astro</h1>
 
     {
-      userIsLoggedIn ? (
+      isUserLoggedIn ? (
         <a
           href="/dashboard"
-          class="px-7 py-3 text-white rounded-md my-5 bg-blue-600 hover:scale-95 transition-all ease-in-out duration-75"
+          class="px-7 py-3 text-white rounded-md my-5 bg-blue-600   transition-all ease-in-out duration-75"
         >
           Dashboard
         </a>
       ) : (
         <a
           href="/login"
-          class="px-7 py-3 text-white rounded-md my-5 bg-blue-600 hover:scale-95 transition-all ease-in-out duration-75"
+          class="px-7 py-3 text-white rounded-md my-5 bg-blue-600   transition-all ease-in-out duration-75"
         >
           Login
         </a>
       )
     }
+
+    <div>
+      By <a
+        href="https://github.com/ksjitendra18"
+        target="_blank"
+        class="underline"
+      >
+        Jitendra
+      </a>
+      &nbsp;
+      <a
+        href="https://github.com/ksjitendra18/astro-js-auth-oauth-passwordless-credentials"
+        target="_blank"
+        class="underline"
+      >
+        Source Code
+      </a>
+
+      &nbsp;
+      <a
+        href="https://everythingcs.dev/category/astro-authentication/"
+        target="_blank"
+        class="underline"
+      >
+        Blog Post
+      </a>
+    </div>
+
+    <div class="my-5 mt-10">
+      <h2 class="text-3xl text-center font-bold mb-3">Features</h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="border-2 rounded-md p-4 flex flex-col gap-2">
+          <h3 class="text-center font-semibold text-xl">
+            Multiple Authentication Strategies
+          </h3>
+          <ul>
+            <li>Password</li>
+            <li>Magic Link / OTP</li>
+            <li>Github</li>
+            <li>Google</li>
+          </ul>
+        </div>
+        <div class="border-2 rounded-md p-4 flex flex-col gap-2">
+          <h3 class="text-center font-semibold text-xl">
+            Two Factor Authentication
+          </h3>
+          <ul>
+            <li>TOTP Based</li>
+            <li>Recovery Codes</li>
+          </ul>
+        </div>
+        <div class="border-2 rounded-md p-4 flex flex-col gap-2">
+          <h3 class="text-center font-semibold text-xl">Other Features</h3>
+          <ul>
+            <li>Rate Limited Endpoints</li>
+            <li>Session Based</li>
+          </ul>
+        </div>
+      </div>
+    </div>
   </div>
 </MainLayout>

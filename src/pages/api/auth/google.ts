@@ -1,26 +1,25 @@
 import type { APIContext } from "astro";
-import { init, createId } from "@paralleldrive/cuid2";
 import { createHash } from "node:crypto";
 import queryString from "query-string";
+import { generateRandomToken } from "../../../lib/random-string";
+import { AUTH_COOKIES } from "../../../features/auth/constants";
 
 export async function GET({ cookies }: APIContext) {
-  const generateId = init({ length: 40 });
+  const googleOauthState = generateRandomToken(32);
 
-  const googleOauthState = createId();
-
-  cookies.set("google_oauth_state", googleOauthState, {
+  cookies.set(AUTH_COOKIES.GOOGLE_OAUTH_STATE, googleOauthState, {
     path: "/",
     httpOnly: true,
     sameSite: "lax",
     secure: import.meta.env.PROD,
   });
 
-  const googleCodeChallenge = generateId();
+  const googleCodeChallenge = generateRandomToken(32);
   const codeChallenge = createHash("sha256")
     .update(googleCodeChallenge)
     .digest("base64url");
 
-  cookies.set("google_code_challenge", googleCodeChallenge, {
+  cookies.set(AUTH_COOKIES.GOOGLE_CODE_CHALLENGE, googleCodeChallenge, {
     path: "/",
     httpOnly: true,
     sameSite: "lax",

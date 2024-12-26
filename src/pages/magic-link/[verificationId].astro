@@ -1,27 +1,38 @@
 ---
-import { eq } from "drizzle-orm";
-import { db } from "../../db/index";
-import { users } from "../../db/schema";
 import MainLayout from "../../layout/main-layout.astro";
-import {
-  create2FASession,
-  createLoginLog,
-  createSession,
-} from "../../lib/auth";
+
 import redis from "../../lib/redis";
-import EmailSchema from "../../validations/email";
+import { EmailSchema } from "../../features/auth/validations/email";
+import {
+  checkAndAddLoginMethod,
+  createUser,
+  getUserByEmail,
+} from "../../features/auth/services/user";
+import { create2FASession } from "../../features/auth/services/two-factor";
+import { createSession } from "../../features/auth/services/session";
+import { createLoginLog } from "../../features/auth/services/logs";
+import { AUTH_COOKIES } from "../../features/auth/constants";
 let isBlocked = false;
 let serverError = false;
 let error = false;
 let success = false;
 
-const userEmail = await redis.get(Astro.params.verificationId!);
+const isUserLoggedIn = !!Astro.locals.userId;
+if (isUserLoggedIn) {
+  return Astro.redirect("/dashboard");
+}
 
+const verificationData: string | null = await redis.get(
+  Astro.params.verificationId!
+);
+console.log("userEmail", verificationData);
 
-if (!userEmail) {
+if (!verificationData) {
   error = true;
 } else {
+  const [code, userEmail] = verificationData.split(":");
   const parsedData = EmailSchema.safeParse(userEmail);
+  console.log(parsedData.error);
 
   if (!parsedData.success) {
     error = true;
@@ -30,43 +41,44 @@ if (!userEmail) {
   success = true;
 
   try {
-    const userExists = await db.query.users.findFirst({
-      where: eq(users.email, parsedData.data),
-      columns: { id: true, isBlocked: true, twoFactorEnabled: true },
-    });
+    const userInfo = await getUserByEmail({ email: parsedData.data });
 
-    if (userExists) {
-      if (userExists.twoFactorEnabled) {
-        const faSess = await create2FASession(userExists.id);
-
-        Astro.cookies.set("login_method", "magic_link", {
-        path: "/",
-        httpOnly: true,
-        sameSite: "lax",
-        secure: import.meta.env.PROD,
+    if (userInfo) {
+      await checkAndAddLoginMethod({
+        userId: userInfo.id,
+        method: "magic_link",
       });
+      if (userInfo.twoFactorEnabled) {
+        const faSess = await create2FASession(userInfo.id);
 
-
-        Astro.cookies.set("2fa_auth", faSess, {
+        Astro.cookies.set(AUTH_COOKIES.LOGIN_METHOD, "magic_link", {
           path: "/",
           httpOnly: true,
+          sameSite: "lax",
+          secure: import.meta.env.PROD,
+        });
+
+        Astro.cookies.set(AUTH_COOKIES.TWO_FA_AUTH, faSess, {
+          path: "/",
+          httpOnly: true,
+          sameSite: "lax",
           secure: import.meta.env.PROD,
         });
         return Astro.redirect("/verify-two-factor");
       }
       const { sessionId, expiresAt } = await createSession({
-        userId: userExists.id,
+        userId: userInfo.id,
       });
 
       await createLoginLog({
         sessionId,
         userAgent: Astro.request.headers.get("user-agent"),
-        userId: userExists.id,
+        userId: userInfo.id,
         ip: Astro.clientAddress ?? "dev",
         strategy: "magic_link",
       });
 
-      Astro.cookies.set("app_auth_token", sessionId, {
+      Astro.cookies.set(AUTH_COOKIES.SESSION_TOKEN, sessionId, {
         path: "/",
         httpOnly: true,
         sameSite: "lax",
@@ -78,30 +90,27 @@ if (!userEmail) {
 
       return Astro.redirect("/dashboard");
     } else {
-      const newUser = await db
-        .insert(users)
-        .values({
-          email: parsedData.data,
-          profilePhoto: "",
-          fullName: "",
-          userName: parsedData.data.split("@")[0],
-          emailVerified: true,
-        })
-        .returning({ id: users.id });
+      const { userId } = await createUser({
+        email: parsedData.data,
+        fullName: "",
+        profilePhoto: "",
+        emailVerified: true,
+        loginMethod: "magic_link",
+      });
 
       const { sessionId, expiresAt } = await createSession({
-        userId: newUser[0].id,
+        userId: userId,
       });
 
       await createLoginLog({
         sessionId,
         userAgent: Astro.request.headers.get("user-agent"),
-        userId: newUser[0].id,
+        userId: userId,
         ip: Astro.clientAddress ?? "dev",
         strategy: "magic_link",
       });
       await redis.del(Astro.params.verificationId!);
-      Astro.cookies.set("app_auth_token", sessionId, {
+      Astro.cookies.set(AUTH_COOKIES.SESSION_TOKEN, sessionId, {
         path: "/",
         httpOnly: true,
         sameSite: "lax",
@@ -129,7 +138,7 @@ if (!userEmail) {
         </p>
         <a
           href="/magic-link"
-          class="px-5 py-2 my-5 bg-blue-600 text-white rounded-md"
+          class="px-5 py-3 my-5 bg-black text-white rounded-md"
         >
           Generate New Link
         </a>

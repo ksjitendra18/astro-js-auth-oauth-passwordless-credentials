@@ -1,8 +1,13 @@
 ---
+import { MagicLinkForm } from "../../features/auth/components/magic-link-form";
+import { AUTH_COOKIES } from "../../features/auth/constants";
 import MainLayout from "../../layout/main-layout.astro";
-import MagicLinkForm from "../../components/magic-link-form";
+
+const magicLinkVerificationId = Astro.cookies.get(
+  AUTH_COOKIES.MAGIC_LINK_VERIFICATION_ID
+)?.value;
 ---
 
 <MainLayout title="Magic Link" description="Log in via magic link">
-  <MagicLinkForm client:load />
+  <MagicLinkForm verificationId={magicLinkVerificationId} client:load />
 </MainLayout>

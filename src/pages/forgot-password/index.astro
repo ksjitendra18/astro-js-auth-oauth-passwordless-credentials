@@ -1,8 +1,13 @@
 ---
+import { PasswordResetRequestForm } from "../../features/auth/components/password-reset-request-form";
 import MainLayout from "../../layout/main-layout.astro";
-import ResetPasswordForm from "../../components/reset-password-form";
+
+const isUserLoggedIn = !!Astro.locals.userId;
+if (isUserLoggedIn) {
+  return Astro.redirect("/dashboard");
+}
 ---
 
 <MainLayout title="Forgot Password" description="Forgot Password">
-  <ResetPasswordForm client:load />
+  <PasswordResetRequestForm client:load />
 </MainLayout>

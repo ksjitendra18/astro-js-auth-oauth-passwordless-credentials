@@ -1,8 +1,14 @@
 ---
+import { TwoFactorVerificationForm } from "../features/auth/components/two-factor-verification-form";
+import { AUTH_COOKIES } from "../features/auth/constants";
 import MainLayout from "../layout/main-layout.astro";
-import TwoFactorVerifyForm from "../components/two-factor-verify-form";
 import redis from "../lib/redis";
-const twoFaSess = Astro.cookies.get("2fa_auth")?.value;
+
+const isUserLoggedIn = !!Astro.locals.userId;
+if (isUserLoggedIn) {
+  return Astro.redirect("/dashboard");
+}
+const twoFaSess = Astro.cookies.get(AUTH_COOKIES.TWO_FA_AUTH)?.value;
 
 if (!twoFaSess) {
   return Astro.redirect("/login");
@@ -19,5 +25,5 @@ if (!userId) {
   title="Two Factor Authentication"
   description="Two Factor Authentication"
 >
-  <TwoFactorVerifyForm client:load />
+  <TwoFactorVerificationForm client:load />
 </MainLayout>

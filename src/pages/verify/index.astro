@@ -1,8 +1,13 @@
 ---
+import { EmailVerificationRequestForm } from "../../features/auth/components/email-verification-request-form";
 import MainLayout from "../../layout/main-layout.astro";
-import VerificationEmailForm from "../../components/verification-email-form";
+
+const isUserLoggedIn = !!Astro.locals.userId;
+if (isUserLoggedIn) {
+  return Astro.redirect("/dashboard");
+}
 ---
 
 <MainLayout title="Verify Email" description="Verify Email">
-  <VerificationEmailForm client:load />
+  <EmailVerificationRequestForm client:load />
 </MainLayout>

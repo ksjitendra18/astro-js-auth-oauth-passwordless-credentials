@@ -1,0 +1,20 @@
+---
+import { EmailUpdateForm } from "../../../features/auth/components/email-update-form";
+import { AUTH_COOKIES } from "../../../features/auth/constants";
+import { getSessionInfo } from "../../../features/auth/services/session";
+import MainLayout from "../../../layout/main-layout.astro";
+
+const sessionToken = Astro.cookies.get(AUTH_COOKIES.SESSION_TOKEN)?.value;
+
+const sessionInfo = await getSessionInfo(sessionToken);
+
+if (!sessionInfo || !sessionInfo.user) {
+  return Astro.redirect("/login");
+}
+---
+
+<MainLayout title="Update Email" description="Update Email">
+  <h1 class="my-10 text-3xl font-bold text-center">Update Email</h1>
+
+  <EmailUpdateForm currentEmail={sessionInfo.user.email} client:load />
+</MainLayout>;

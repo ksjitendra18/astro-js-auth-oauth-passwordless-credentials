@@ -1,5 +1,24 @@
 # Changelog
 
+## 26th December 2024
+
+### Changes
+
+Major changes in terms of database schema, folder structure and code structure.
+
+- Introduced a new folder structure (feature folder)
+- Replaced @upstash/redis with ioredis
+- better rate limiting (more changes to come)
+- New functionality: Change Email,Update Password, Delete Account
+
+#### Schema Changes
+
+- new table: login_methods
+
+#### Passwords
+
+- replaced bcrypt with argon2
+
 ## 16th September 2024
 
 ### Changes

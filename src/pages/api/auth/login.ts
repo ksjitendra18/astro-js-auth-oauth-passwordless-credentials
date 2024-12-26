@@ -1,34 +1,29 @@
 import type { APIContext } from "astro";
-import bcrypt from "bcryptjs";
-import { eq } from "drizzle-orm";
-import { db } from "../../../db";
-import { passwords, users } from "../../../db/schema";
+import { AUTH_COOKIES } from "../../../features/auth/constants";
+import { createLoginLog } from "../../../features/auth/services/logs";
 import {
-  create2FASession,
-  createLoginLog,
-  createSession,
-} from "../../../lib/auth";
-import LoginSchema from "../../../validations/login";
-import redis from "../../../lib/redis";
+  getUserPassword,
+  verifyPassword,
+} from "../../../features/auth/services/password";
+import { createSession } from "../../../features/auth/services/session";
+import { create2FASession } from "../../../features/auth/services/two-factor";
+import { getUserByEmail } from "../../../features/auth/services/user";
+import { LoginSchema } from "../../../features/auth/validations/login";
+import { SlidingWindowRateLimiter } from "../../../features/ratelimit/services";
 
 export async function POST({ clientAddress, request, cookies }: APIContext) {
   try {
-    const loginAttemptCount = await redis.get(`${clientAddress}_login_attempt`);
+    const rateLimiter = new SlidingWindowRateLimiter("auth:login", 10 * 60, 10);
+    const ratelimitResponse = await rateLimiter.checkLimit(clientAddress);
 
-    if (loginAttemptCount === null) {
-      await redis.set(`${clientAddress}_login_attempt`, 9, { ex: 600 });
-    } else {
-      if (Number(loginAttemptCount) < 1) {
-        return Response.json(
-          {
-            error: "rate_limit",
-            message: "Too many requests. Please try again later.",
-          },
-          { status: 429 }
-        );
-      } else {
-        await redis.decr(`${clientAddress}_login_attempt`);
-      }
+    if (!ratelimitResponse.allowed) {
+      return Response.json(
+        {
+          error: "rate_limit",
+          message: "Too many requests. Please try again later.",
+        },
+        { status: 429 }
+      );
     }
     const { email, password }: { email: string; password: string } =
       await request.json();
@@ -48,24 +43,12 @@ export async function POST({ clientAddress, request, cookies }: APIContext) {
       );
     }
 
-    const userExists = await db.query.users.findFirst({
-      where: eq(users.email, email),
-      columns: { id: true, twoFactorEnabled: true },
+    const userInfo = await getUserByEmail({
+      email: email,
+      shouldNormalizeEmail: false,
     });
 
-    const passwordExists = await db.query.passwords.findFirst({
-      where: eq(passwords.userId, userExists?.id ?? "SomeThingRandom"),
-      columns: { password: true },
-    });
-
-    // match password
-    const passwordMatch = await bcrypt.compare(
-      password,
-      passwordExists?.password ??
-        "$2a$10$mqgl5wfEnNtGQurbRDL.seQZRxY0Dhqc/RVoNtV01wzAMmYRfjvyW"
-    );
-
-    if (!passwordMatch || !userExists) {
+    if (!userInfo) {
       return Response.json(
         {
           error: "auth_error",
@@ -75,17 +58,53 @@ export async function POST({ clientAddress, request, cookies }: APIContext) {
       );
     }
 
-    if (userExists.twoFactorEnabled) {
-      const faSess = await create2FASession(userExists.id);
+    const passwordExists = await getUserPassword({ userId: userInfo.id });
 
-      cookies.set("login_method", "credentials", {
+    if (!passwordExists) {
+      return Response.json(
+        {
+          error: "auth_error",
+          message: "Incorrect email or password",
+        },
+        { status: 401 }
+      );
+    }
+    const validPassword = await verifyPassword({
+      enteredPassword: parsedData.data.password,
+      hash: passwordExists.password,
+    });
+
+    if (!validPassword) {
+      return Response.json(
+        {
+          error: "auth_error",
+          message: "Incorrect email or password",
+        },
+        { status: 401 }
+      );
+    }
+
+    if (!userInfo.emailVerified) {
+      return Response.json(
+        {
+          error: "email_unverified",
+          message: "Email not verified",
+        },
+        { status: 401 }
+      );
+    }
+
+    if (userInfo.twoFactorEnabled) {
+      const faSess = await create2FASession(userInfo.id);
+
+      cookies.set(AUTH_COOKIES.LOGIN_METHOD, "password", {
         path: "/",
         httpOnly: true,
         sameSite: "lax",
         secure: import.meta.env.PROD,
       });
 
-      cookies.set("2fa_auth", faSess, {
+      cookies.set(AUTH_COOKIES.TWO_FA_AUTH, faSess, {
         path: "/",
         httpOnly: true,
         sameSite: "lax",
@@ -101,31 +120,30 @@ export async function POST({ clientAddress, request, cookies }: APIContext) {
     }
 
     const { sessionId, expiresAt } = await createSession({
-      userId: userExists.id,
+      userId: userInfo.id,
     });
 
-    // log
     await createLoginLog({
       sessionId,
       userAgent: request.headers.get("user-agent"),
-      userId: userExists.id,
+      userId: userInfo.id,
       ip: clientAddress ?? "dev",
-      strategy: "credentials",
+      strategy: "password",
     });
 
-    return Response.json(
-      { message: "Logged In Successfully", redirect: "/dashboard" },
-      {
-        status: 200,
-        headers: {
-          "Set-Cookie": `app_auth_token=${sessionId}; Path=/; HttpOnly; SameSite=Lax;Expires=${expiresAt.toUTCString()}; Secure=${
-            import.meta.env.PROD
-          }`,
-        },
-      }
-    );
+    cookies.set(AUTH_COOKIES.SESSION_TOKEN, sessionId, {
+      path: "/",
+      httpOnly: true,
+      expires: expiresAt,
+      secure: import.meta.env.PROD,
+      sameSite: "lax",
+    });
+    return Response.json({
+      message: "Logged In Successfully",
+      redirect: "/dashboard",
+    });
   } catch (error) {
-    console.log("Error while signup", error);
+    console.log("Error while login", error);
     return Response.json(
       { error: "server_error", message: "Server Error" },
       { status: 500 }
