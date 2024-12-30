@@ -13,7 +13,7 @@ Main branch contains the latest updated code. If you're following the blog post,
 - Solid.js
 - Zod
 - Database session strategy for auth persistence
-- Argon2 for password encryption
+- Argon2 for password hashing
 
 I am not using any external auth library for this guide. At the moment of writing, Auth.js doesn't support Astro. In a separate blog post I will do all these authentication strategy through Lucia Auth.
 
@@ -29,16 +29,15 @@ Now copy the `.env.example` file to `.env` and fill in the values.
 
 Please refer to blog post for github and google oauth setup.
 
-You will need Turso DB and Redis for it. You can use sqlite or choose other database but you will have to make changes in the schema. For Redis, I am using Upstash Redis.
+You will need Turso DB and Redis for it. You can use sqlite or choose other database but then you will have to make changes in the schema. For Redis, I am using Upstash Redis.
 
-For emails you can use any email service which provides HTTP API.I am using Resend for sending emails.. If you provider doesn't support HTTP API, you will have to make changes in the code 
+For emails you can use any email service which provides HTTP API.I am using Resend for sending emails. If you provider doesn't support HTTP API, you will have to make changes in the code (although single file) 
 
 To run the project, run the following command:
 
 ```bash
 npm run dev 
 ``` 
-
 
 Here are the strategies with their starter code, finished code and also the related blog post.
 
