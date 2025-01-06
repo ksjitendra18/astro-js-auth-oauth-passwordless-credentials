@@ -3,6 +3,7 @@ import { getUserById } from "../../../features/auth/services/user";
 import MainLayout from "../../../layout/main-layout.astro";
 import { AccountDeletionForm } from "../../../features/auth/components/account-deletion-form";
 import redis from "../../../lib/redis";
+import { AUTH_COOKIES } from "../../../features/auth/constants";
 
 const userId = Astro.locals?.userId;
 
@@ -16,7 +17,7 @@ if (!userInfo) {
   return Astro.redirect("/login");
 }
 
-const deletionId = Astro.cookies.get("deletionId")?.value;
+const deletionId = Astro.cookies.get(AUTH_COOKIES.ACCOUNT_DELETION_ID)?.value;
 
 let hasRecentlySentCode = false;
 if (deletionId) {

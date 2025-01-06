@@ -197,21 +197,21 @@ export const AccountPage = ({
         </section>
       )}
       <section class="border-2 rounded-md p-6">
-        <div class="flex gap-3 items-center space-y-1.5 ">
+        <div class="flex gap-3 items-center ">
           <h2 class="text-2xl font-semibold">Two Factor</h2>
           {userAccountInfo.twoFactorEnabled ? (
             <p class="text-sm uppercase bg-green-600 px-4 py-2 text-white rounded-full">
               Enabled
             </p>
           ) : (
-            <p class="text-sm uppercase bg-black px-4  py-2 text-white rounded-full">
+            <p class="text-sm uppercase bg-gray-400 px-4  py-2 text-white rounded-full">
               Disabled
             </p>
           )}
         </div>
         {userAccountInfo.twoFactorEnabled ? (
           <>
-            <div class="flex flex-col md:flex-row gap-5 mt-10 items-center">
+            <div class="flex flex-col md:flex-row gap-5 mt-5 items-center">
               <a
                 href="/two-factor"
                 class="bg-black  w-fit flex items-center justify-center px-10 py-3  md:w-fit text-center rounded-md text-white "
@@ -314,15 +314,14 @@ export const AccountPage = ({
                         onClick={() => revokeSession(log.sessionId!)}
                         class="bg-red-700 text-white px-6 py-2 rounded-md font-medium"
                       >
-                        Revoke Access
                         {revokingSession() ? (
                           <Loader2 class="animate-spin mx-auto" />
                         ) : (
-                          "Revoke"
+                          "Revoke Access"
                         )}
                       </button>
                     ) : (
-                      <span class="text-green-600 font-medium">
+                      <span class="text-green-600 bg-green-100 px-4 py-2 rounded-full font-medium">
                         This Device
                       </span>
                     )}

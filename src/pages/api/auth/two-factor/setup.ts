@@ -1,5 +1,6 @@
 import type { APIContext } from "astro";
-import { authenticator } from "otplib";
+import * as z from "zod";
+import { AUTH_COOKIES } from "../../../../features/auth/constants";
 import { getSessionInfo } from "../../../../features/auth/services/session";
 import {
   enableTwoFactor,
@@ -7,8 +8,6 @@ import {
 } from "../../../../features/auth/services/two-factor";
 import { sendTwoFactorActivationMail } from "../../../../features/email/templates/auth";
 import { aesEncrypt, EncryptionPurpose } from "../../../../lib/aes";
-import * as z from "zod";
-import { AUTH_COOKIES } from "../../../../features/auth/constants";
 
 const RequestBodySchema = z.object({
   secretCode: z

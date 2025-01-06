@@ -38,7 +38,6 @@ export const AccountDeletionForm = ({
         setMsg(resData.message);
       } else {
         setCodeSent(true);
-        setMsg("Code Sent Successfully");
       }
     } catch (error) {
       setMsg("Server Error. Try again later.");
@@ -77,7 +76,7 @@ export const AccountDeletionForm = ({
         setMsg(resData.message);
       } else {
         setSuccess(true);
-        setMsg("Verification Success");
+        setMsg("Account deleted successfully");
 
         window.location.href = "/account";
       }
@@ -166,6 +165,10 @@ export const AccountDeletionForm = ({
               </p>
             )}
           </div>
+
+          <button onClick={() => setCodeSent(false)}>
+            Didn't receive the code? Retry
+          </button>
         </>
       )}
     </div>
