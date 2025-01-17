@@ -1,6 +1,8 @@
 import { and, eq, gte, ne } from "drizzle-orm";
 import { db, type Transaction } from "../../../db/index";
 import { sessions } from "../../../db/schema";
+import redis, { extendTtl } from "../../../lib/redis";
+import { aesDecrypt, aesEncrypt, EncryptionPurpose } from "../../../lib/aes";
 
 type NewSessionArgs = {
   userId: string;
@@ -28,15 +30,45 @@ export const createSession = async ({ userId }: NewSessionArgs) => {
   }
 };
 
+type GetSessionInfo = {
+  id: string;
+  expiresAt: number;
+  user: {
+    id: string;
+    email: string;
+    emailVerified: boolean;
+  };
+};
+
 export const getSessionInfo = async (sessionToken: string | undefined) => {
   if (!sessionToken) return undefined;
-  return await db.query.sessions.findFirst({
+
+  const decryptedSessionId = aesDecrypt(
+    sessionToken,
+    EncryptionPurpose.SESSION_COOKIE_SECRET
+  );
+
+  const cachedSession = await redis.get(decryptedSessionId);
+  if (cachedSession) {
+    const decryptedSession = aesDecrypt(
+      cachedSession,
+      EncryptionPurpose.SESSION_COOKIE_SECRET
+    );
+    await extendTtl({
+      key: decryptedSessionId,
+      newTTL: 60 * 5,
+    });
+    return JSON.parse(decryptedSession) as GetSessionInfo;
+  }
+
+  const sessionInfo = await db.query.sessions.findFirst({
     where: and(
-      eq(sessions.id, sessionToken),
+      eq(sessions.id, decryptedSessionId),
       gte(sessions.expiresAt, new Date().getTime())
     ),
     columns: {
       id: true,
+      expiresAt: true,
     },
     with: {
       user: {
@@ -48,6 +80,17 @@ export const getSessionInfo = async (sessionToken: string | undefined) => {
       },
     },
   });
+
+  if (!sessionInfo || !sessionInfo.user) return undefined;
+
+  const encryptedSession = aesEncrypt(
+    JSON.stringify(sessionInfo),
+    EncryptionPurpose.SESSION_COOKIE_SECRET
+  );
+
+  await redis.set(sessionToken, encryptedSession, "EX", 60 * 5);
+
+  return sessionInfo;
 };
 
 export const deleteSessionById = async (sessionId: string) => {
@@ -75,4 +118,36 @@ export const deleteSessionByUserId = async ({
   } else {
     return await trx.delete(sessions).where(eq(sessions.userId, userId));
   }
+};
+
+type ExtendSession = {
+  sessionId: string;
+  expiresAt: number;
+};
+
+export const extendSession = async ({
+  sessionId,
+  expiresAt,
+}: ExtendSession) => {
+  const currentTime = new Date().getTime();
+  const twoDaysInMs = 2 * 24 * 60 * 60 * 1000; // 2 days in milliseconds
+
+  if (expiresAt - currentTime <= twoDaysInMs) {
+    const newExpiresAt = new Date(
+      currentTime + 14 * 24 * 60 * 60 * 1000
+    ).getTime();
+
+    try {
+      await db
+        .update(sessions)
+        .set({ expiresAt: newExpiresAt })
+        .where(eq(sessions.id, sessionId));
+
+      return { sessionId, expiresAt: newExpiresAt };
+    } catch (error) {
+      throw new Error("Failed to extend session");
+    }
+  }
+
+  return { sessionId, expiresAt };
 };

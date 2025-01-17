@@ -9,6 +9,7 @@ const tagLength = 16;
 export enum EncryptionPurpose {
   RECOVERY_CODE = "RECOVERY_CODE_SECRET",
   TWO_FA_SECRET = "TWO_FA_SECRET",
+  SESSION_COOKIE_SECRET= "SESSION_COOKIE_SECRET"
 }
 
 export function aesEncrypt(plaintext: string, purpose: EncryptionPurpose) {

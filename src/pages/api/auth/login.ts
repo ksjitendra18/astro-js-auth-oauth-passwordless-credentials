@@ -10,6 +10,7 @@ import { create2FASession } from "../../../features/auth/services/two-factor";
 import { getUserByEmail } from "../../../features/auth/services/user";
 import { LoginSchema } from "../../../features/auth/validations/login";
 import { SlidingWindowRateLimiter } from "../../../features/ratelimit/services";
+import { aesEncrypt, EncryptionPurpose } from "../../../lib/aes";
 
 export async function POST({ clientAddress, request, cookies }: APIContext) {
   try {
@@ -131,7 +132,12 @@ export async function POST({ clientAddress, request, cookies }: APIContext) {
       strategy: "password",
     });
 
-    cookies.set(AUTH_COOKIES.SESSION_TOKEN, sessionId, {
+    const encryptedSessionId = aesEncrypt(
+      sessionId,
+      EncryptionPurpose.SESSION_COOKIE_SECRET
+    );
+
+    cookies.set(AUTH_COOKIES.SESSION_TOKEN, encryptedSessionId, {
       path: "/",
       httpOnly: true,
       expires: expiresAt,
