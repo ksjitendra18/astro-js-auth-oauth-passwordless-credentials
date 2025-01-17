@@ -1,10 +1,11 @@
 import type { APIContext } from "astro";
 import { deleteSessionById } from "../../../features/auth/services/session";
 import { AUTH_COOKIES } from "../../../features/auth/constants";
+import { aesDecrypt, EncryptionPurpose } from "../../../lib/aes";
 
 export async function GET({ cookies }: APIContext) {
-  const sessionId = cookies.get(AUTH_COOKIES.SESSION_TOKEN)?.value;
-  if (!sessionId) {
+  const encryptedSessionId = cookies.get(AUTH_COOKIES.SESSION_TOKEN)?.value;
+  if (!encryptedSessionId) {
     return new Response(null, {
       status: 302,
       headers: {
@@ -13,7 +14,12 @@ export async function GET({ cookies }: APIContext) {
     });
   }
 
-  await deleteSessionById(sessionId);
+  const decryptedSessionId = aesDecrypt(
+    encryptedSessionId,
+    EncryptionPurpose.SESSION_COOKIE_SECRET
+  );
+
+  await deleteSessionById(decryptedSessionId);
 
   cookies.delete(AUTH_COOKIES.SESSION_TOKEN, {
     path: "/",
