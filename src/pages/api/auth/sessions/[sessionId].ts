@@ -2,24 +2,40 @@ import type { APIContext } from "astro";
 
 import {
   deleteSessionById,
+  deleteSessionByIdAndUserId,
   getSessionInfo,
 } from "../../../../features/auth/services/session";
+import { AUTH_COOKIES } from "../../../../features/auth/constants";
 
-export async function DELETE({ params }: APIContext) {
-  const { sessionId } = params;
-
+export async function DELETE({ params, cookies }: APIContext) {
   try {
+    const { sessionId } = params;
+
     if (!sessionId) {
       return Response.json(
         {
-          error: "validation_error",
-          message: "Please pass a valid session id",
+          error: "validtion_error",
+          message: "Invalid sessionId",
         },
         { status: 400 }
       );
     }
 
-    const sessionInfo = await getSessionInfo(sessionId);
+    const sessionToken = cookies.get(AUTH_COOKIES.SESSION_TOKEN)?.value;
+
+    if (!sessionToken) {
+      return Response.json(
+        {
+          error: "authentication_error",
+          message: "Log in",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
+
+    const sessionInfo = await getSessionInfo(sessionToken);
 
     if (!sessionInfo || !sessionInfo.user) {
       return Response.json(
@@ -32,8 +48,7 @@ export async function DELETE({ params }: APIContext) {
         }
       );
     }
-
-    await deleteSessionById(sessionId);
+    await deleteSessionByIdAndUserId({sessionId, userId: sessionInfo.user.id});
     return Response.json({ success: true });
   } catch (error) {
     console.log("Error while delete sessionId ", error);

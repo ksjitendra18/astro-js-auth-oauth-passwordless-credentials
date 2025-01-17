@@ -97,6 +97,18 @@ export const deleteSessionById = async (sessionId: string) => {
   return await db.delete(sessions).where(eq(sessions.id, sessionId));
 };
 
+export const deleteSessionByIdAndUserId = async ({
+  sessionId,
+  userId,
+}: {
+  sessionId: string;
+  userId: string;
+}) => {
+  return await db
+    .delete(sessions)
+    .where(and(eq(sessions.id, sessionId), eq(sessions.userId, userId)));
+};
+
 export const deleteSessionByUserId = async ({
   userId,
   keepCurrentSession = false,
