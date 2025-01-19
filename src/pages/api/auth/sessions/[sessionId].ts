@@ -1,14 +1,31 @@
 import type { APIContext } from "astro";
 
+import { AUTH_COOKIES } from "../../../../features/auth/constants";
 import {
-  deleteSessionById,
   deleteSessionByIdAndUserId,
   getSessionInfo,
 } from "../../../../features/auth/services/session";
-import { AUTH_COOKIES } from "../../../../features/auth/constants";
+import { SlidingWindowRateLimiter } from "../../../../features/ratelimit/services";
 
-export async function DELETE({ params, cookies }: APIContext) {
+export async function DELETE({ params, cookies, clientAddress }: APIContext) {
   try {
+    const rateLimiter = new SlidingWindowRateLimiter(
+      "auth:delete-session",
+      10 * 60,
+      5
+    );
+
+    const ratelimitResponse = await rateLimiter.checkLimit(clientAddress);
+
+    if (!ratelimitResponse.allowed) {
+      return Response.json(
+        {
+          error: "rate_limit",
+          message: "Too many requests. Please try again later.",
+        },
+        { status: 429 }
+      );
+    }
     const { sessionId } = params;
 
     if (!sessionId) {
@@ -48,7 +65,21 @@ export async function DELETE({ params, cookies }: APIContext) {
         }
       );
     }
-    await deleteSessionByIdAndUserId({sessionId, userId: sessionInfo.user.id});
+    const result = await deleteSessionByIdAndUserId({
+      sessionId,
+      userId: sessionInfo.user.id,
+    });
+
+    if (result.rowsAffected === 0) {
+      return Response.json(
+        {
+          error: "authorization_error",
+          message: "You are not authorized to delete this session",
+        },
+        { status: 403 }
+      );
+    }
+
     return Response.json({ success: true });
   } catch (error) {
     console.log("Error while delete sessionId ", error);

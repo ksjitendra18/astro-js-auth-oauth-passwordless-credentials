@@ -1,9 +1,9 @@
 import type { APIContext } from "astro";
+import { AUTH_COOKIES } from "../../../../features/auth/constants";
 import {
   deleteSessionByUserId,
   getSessionInfo,
 } from "../../../../features/auth/services/session";
-import { AUTH_COOKIES } from "../../../../features/auth/constants";
 
 export async function DELETE({ cookies }: APIContext) {
   try {

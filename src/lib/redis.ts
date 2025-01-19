@@ -22,18 +22,15 @@ export const extendTtl = async ({
   const remainingTTL = await redis.ttl(key);
 
   if (remainingTTL === -2) {
-    console.log("Key does not exist.");
     return;
   }
 
   if (remainingTTL === -1) {
-    console.log("Key exists but does not have a TTL. Setting a new TTL.");
     await redis.expire(key, newTTL);
     return;
   }
 
   if (remainingTTL < thresholdInSeconds) {
-    console.log("Remaining TTL is less than the threshold. Extending TTL.");
     await redis.expire(key, newTTL);
   }
 };

@@ -291,7 +291,7 @@ export const AccountPage = ({
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
-              {logs.map((log, index) => (
+              {logs.map((log) => (
                 <tr class="hover:bg-gray-50">
                   <td class="px-4 py-4 text-sm">
                     <div class="flex items-center gap-2">

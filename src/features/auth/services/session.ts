@@ -88,7 +88,7 @@ export const getSessionInfo = async (sessionToken: string | undefined) => {
     EncryptionPurpose.SESSION_COOKIE_SECRET
   );
 
-  await redis.set(sessionToken, encryptedSession, "EX", 60 * 5);
+  await redis.set(decryptedSessionId, encryptedSession, "EX", 60 * 5);
 
   return sessionInfo;
 };

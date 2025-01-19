@@ -1,5 +1,11 @@
 # Changelog
 
+## 17th January 2025
+
+### Changes
+
+Sessions IDs are now encrypted using AES-256-GCM. Also sessions are cached in redis. 
+
 ## 26th December 2024
 
 ### Changes
