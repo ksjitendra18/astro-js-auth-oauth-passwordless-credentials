@@ -21,7 +21,8 @@ export const users = sqliteTable("users", {
   emailVerified: integer({ mode: "boolean" }).default(false).notNull(),
   twoFactorEnabled: integer({ mode: "boolean" }).default(false).notNull(),
   twoFactorSecret: text(),
-  isBlocked: integer({ mode: "boolean" }).default(false),
+  isBanned: integer({ mode: "boolean" }).default(false),
+  banReason: text(),
   isDeleted: integer({ mode: "boolean" }).default(false),
   createdAt: text().default(sql`CURRENT_TIMESTAMP`),
   updatedAt: text()

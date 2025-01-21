@@ -1,5 +1,11 @@
 # Changelog
 
+## 21st January 2025
+
+### Changes
+
+Schema Changes: changed isBlocked to isBanned
+
 ## 17th January 2025
 
 ### Changes

@@ -15,7 +15,7 @@ Main branch contains the latest updated code. If you're following the blog post,
 - Database session strategy for auth persistence
 - Argon2 for password hashing
 
-I am not using any external auth library for this guide. At the moment of writing, Auth.js doesn't support Astro. In a separate blog post I will do all these authentication strategy through Lucia Auth.
+I am not using any external auth library for this guide. At the moment of writing, Auth.js doesn't support Astro. In a separate blog post I will do all these authentication strategy through Arctic , Oslo and also Better Auth.
 
 ## Getting Started
 
@@ -40,6 +40,10 @@ npm run dev
 ``` 
 
 Here are the strategies with their starter code, finished code and also the related blog post.
+
+## Deployment
+
+This can be hosted anywhere like VM or serverless platforms like Vercel, Netlify except edge platforms like Cloudflare Pages because this project uses Argon2 for password hashing which is not supported on edge platforms. If you choose not to have password based authentication, you can host it on edge platforms (still you will need to make changes especially in aes implementation).
 
 ## 1. Oauth (Google and Github)
 

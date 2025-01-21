@@ -12,7 +12,7 @@ import { create2FASession } from "../../features/auth/services/two-factor";
 import { createSession } from "../../features/auth/services/session";
 import { createLoginLog } from "../../features/auth/services/logs";
 import { AUTH_COOKIES } from "../../features/auth/constants";
-let isBlocked = false;
+let isBanned = false;
 let serverError = false;
 let error = false;
 let success = false;
@@ -25,7 +25,6 @@ if (isUserLoggedIn) {
 const verificationData: string | null = await redis.get(
   Astro.params.verificationId!
 );
-console.log("userEmail", verificationData);
 
 if (!verificationData) {
   error = true;
@@ -43,53 +42,7 @@ if (!verificationData) {
   try {
     const userInfo = await getUserByEmail({ email: parsedData.data });
 
-    if (userInfo) {
-      await checkAndAddLoginMethod({
-        userId: userInfo.id,
-        method: "magic_link",
-      });
-      if (userInfo.twoFactorEnabled) {
-        const faSess = await create2FASession(userInfo.id);
-
-        Astro.cookies.set(AUTH_COOKIES.LOGIN_METHOD, "magic_link", {
-          path: "/",
-          httpOnly: true,
-          sameSite: "lax",
-          secure: import.meta.env.PROD,
-        });
-
-        Astro.cookies.set(AUTH_COOKIES.TWO_FA_AUTH, faSess, {
-          path: "/",
-          httpOnly: true,
-          sameSite: "lax",
-          secure: import.meta.env.PROD,
-        });
-        return Astro.redirect("/verify-two-factor");
-      }
-      const { sessionId, expiresAt } = await createSession({
-        userId: userInfo.id,
-      });
-
-      await createLoginLog({
-        sessionId,
-        userAgent: Astro.request.headers.get("user-agent"),
-        userId: userInfo.id,
-        ip: Astro.clientAddress ?? "dev",
-        strategy: "magic_link",
-      });
-
-      Astro.cookies.set(AUTH_COOKIES.SESSION_TOKEN, sessionId, {
-        path: "/",
-        httpOnly: true,
-        sameSite: "lax",
-        expires: expiresAt,
-        secure: import.meta.env.PROD,
-      });
-
-      await redis.del(Astro.params.verificationId!);
-
-      return Astro.redirect("/dashboard");
-    } else {
+    if (!userInfo) {
       const { userId } = await createUser({
         email: parsedData.data,
         fullName: "",
@@ -120,6 +73,53 @@ if (!verificationData) {
 
       return Astro.redirect("/profile");
     }
+
+    await checkAndAddLoginMethod({
+      userId: userInfo.id,
+      method: "magic_link",
+    });
+
+    if (userInfo.twoFactorEnabled) {
+      const faSess = await create2FASession(userInfo.id);
+
+      Astro.cookies.set(AUTH_COOKIES.LOGIN_METHOD, "magic_link", {
+        path: "/",
+        httpOnly: true,
+        sameSite: "lax",
+        secure: import.meta.env.PROD,
+      });
+
+      Astro.cookies.set(AUTH_COOKIES.TWO_FA_AUTH, faSess, {
+        path: "/",
+        httpOnly: true,
+        sameSite: "lax",
+        secure: import.meta.env.PROD,
+      });
+      return Astro.redirect("/verify-two-factor");
+    }
+    const { sessionId, expiresAt } = await createSession({
+      userId: userInfo.id,
+    });
+
+    await createLoginLog({
+      sessionId,
+      userAgent: Astro.request.headers.get("user-agent"),
+      userId: userInfo.id,
+      ip: Astro.clientAddress ?? "dev",
+      strategy: "magic_link",
+    });
+
+    Astro.cookies.set(AUTH_COOKIES.SESSION_TOKEN, sessionId, {
+      path: "/",
+      httpOnly: true,
+      sameSite: "lax",
+      expires: expiresAt,
+      secure: import.meta.env.PROD,
+    });
+
+    await redis.del(Astro.params.verificationId!);
+
+    return Astro.redirect("/dashboard");
   } catch (error) {
     console.log("Error in verifying magic link", error);
     serverError = true;
@@ -155,10 +155,10 @@ if (!verificationData) {
     )
   }
   {
-    isBlocked && (
+    isBanned && (
       <div class="my-10 flex flex-col items-center justify-center">
         <h2 class="text-3xl text-center font-bold">Access Restricted</h2>
-        <p class="my-2">Please contact support</p>
+        <p class="my-2">You have been banned. Please contact support.</p>
       </div>
     )
   }

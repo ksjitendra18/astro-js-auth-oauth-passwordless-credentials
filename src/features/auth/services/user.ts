@@ -74,7 +74,7 @@ export const getUserByEmail = async ({
         users[shouldNormalizeEmail ? "normalizedEmail" : "email"],
         formattedEmail
       ),
-      eq(users.isBlocked, false),
+      eq(users.isBanned, false),
       eq(users.isDeleted, false)
     ),
   });
@@ -90,7 +90,7 @@ export const getUserById = async (id: string) => {
     },
     where: and(
       eq(users.id, id),
-      eq(users.isBlocked, false),
+      eq(users.isBanned, false),
       eq(users.isDeleted, false)
     ),
   });
@@ -109,7 +109,7 @@ export const getOauthUserData = async ({
   const userData = await db.query.users.findFirst({
     where: and(
       eq(users.normalizedEmail, normalizedEmail),
-      eq(users.isBlocked, false),
+      eq(users.isBanned, false),
       eq(users.isDeleted, false)
     ),
     columns: {

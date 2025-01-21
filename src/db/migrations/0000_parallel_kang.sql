@@ -1,7 +1,7 @@
 CREATE TABLE `login_logs` (
 	`id` text PRIMARY KEY NOT NULL,
-	`sessionId` text,
-	`userId` text,
+	`sessionId` text NOT NULL,
+	`userId` text NOT NULL,
 	`strategy` text NOT NULL,
 	`browser` text NOT NULL,
 	`device` text NOT NULL,
@@ -73,7 +73,8 @@ CREATE TABLE `users` (
 	`emailVerified` integer DEFAULT false NOT NULL,
 	`twoFactorEnabled` integer DEFAULT false NOT NULL,
 	`twoFactorSecret` text,
-	`isBlocked` integer DEFAULT false,
+	`isBanned` integer DEFAULT false,
+	`banReason` text,
 	`isDeleted` integer DEFAULT false,
 	`createdAt` text DEFAULT CURRENT_TIMESTAMP,
 	`updatedAt` text DEFAULT CURRENT_TIMESTAMP

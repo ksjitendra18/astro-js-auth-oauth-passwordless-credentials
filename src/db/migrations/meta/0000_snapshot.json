@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "e9a17d0f-3ed2-41b6-9849-3b2973fb623a",
+  "id": "a05f9d3e-7a36-4d43-b5b1-732912e44154",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "login_logs": {
@@ -18,14 +18,14 @@
           "name": "sessionId",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "userId": {
           "name": "userId",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "strategy": {
@@ -525,13 +525,20 @@
           "notNull": false,
           "autoincrement": false
         },
-        "isBlocked": {
-          "name": "isBlocked",
+        "isBanned": {
+          "name": "isBanned",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false,
           "default": false
+        },
+        "banReason": {
+          "name": "banReason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
         },
         "isDeleted": {
           "name": "isDeleted",
