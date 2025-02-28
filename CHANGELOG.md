@@ -2,9 +2,9 @@
 
 ## 28th February 2025
 
+Added try catch in `getSessionInfo` to prevent server from crashing or throwing error while decrypting data
+
 Removed ratelimit from email templates as api endpoints are already rate limited
-
-
 
 ## 21st January 2025
 

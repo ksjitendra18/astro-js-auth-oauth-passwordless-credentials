@@ -41,56 +41,61 @@ type GetSessionInfo = {
 };
 
 export const getSessionInfo = async (sessionToken: string | undefined) => {
-  if (!sessionToken) return undefined;
+  try {
+    if (!sessionToken) return undefined;
 
-  const decryptedSessionId = aesDecrypt(
-    sessionToken,
-    EncryptionPurpose.SESSION_COOKIE_SECRET
-  );
-
-  const cachedSession = await redis.get(decryptedSessionId);
-  if (cachedSession) {
-    const decryptedSession = aesDecrypt(
-      cachedSession,
+    const decryptedSessionId = aesDecrypt(
+      sessionToken,
       EncryptionPurpose.SESSION_COOKIE_SECRET
     );
-    await extendTtl({
-      key: decryptedSessionId,
-      newTTL: 60 * 5,
-    });
-    return JSON.parse(decryptedSession) as GetSessionInfo;
-  }
 
-  const sessionInfo = await db.query.sessions.findFirst({
-    where: and(
-      eq(sessions.id, decryptedSessionId),
-      gte(sessions.expiresAt, new Date().getTime())
-    ),
-    columns: {
-      id: true,
-      expiresAt: true,
-    },
-    with: {
-      user: {
-        columns: {
-          id: true,
-          email: true,
-          emailVerified: true,
+    const cachedSession = await redis.get(decryptedSessionId);
+    if (cachedSession) {
+      const decryptedSession = aesDecrypt(
+        cachedSession,
+        EncryptionPurpose.SESSION_COOKIE_SECRET
+      );
+      await extendTtl({
+        key: decryptedSessionId,
+        newTTL: 60 * 5,
+      });
+      return JSON.parse(decryptedSession) as GetSessionInfo;
+    }
+
+    const sessionInfo = await db.query.sessions.findFirst({
+      where: and(
+        eq(sessions.id, decryptedSessionId),
+        gte(sessions.expiresAt, new Date().getTime())
+      ),
+      columns: {
+        id: true,
+        expiresAt: true,
+      },
+      with: {
+        user: {
+          columns: {
+            id: true,
+            email: true,
+            emailVerified: true,
+          },
         },
       },
-    },
-  });
+    });
 
-  if (!sessionInfo || !sessionInfo.user) return undefined;
+    if (!sessionInfo || !sessionInfo.user) return undefined;
 
-  const encryptedSession = aesEncrypt(
-    JSON.stringify(sessionInfo),
-    EncryptionPurpose.SESSION_COOKIE_SECRET
-  );
+    const encryptedSession = aesEncrypt(
+      JSON.stringify(sessionInfo),
+      EncryptionPurpose.SESSION_COOKIE_SECRET
+    );
 
-  await redis.set(decryptedSessionId, encryptedSession, "EX", 60 * 5);
+    await redis.set(decryptedSessionId, encryptedSession, "EX", 60 * 5);
 
-  return sessionInfo;
+    return sessionInfo;
+  } catch (error) {
+    console.error("Error in getSession:", error);
+    return undefined;
+  }
 };
 
 export const deleteSessionById = async (sessionId: string) => {
