@@ -62,8 +62,15 @@ if (!verificationData) {
         ip: Astro.clientAddress ?? "dev",
         strategy: "magic_link",
       });
+
       await redis.del(Astro.params.verificationId!);
-      Astro.cookies.set(AUTH_COOKIES.SESSION_TOKEN, sessionId, {
+
+      const encryptedSessionId = aesEncrypt(
+        sessionId,
+        EncryptionPurpose.SESSION_COOKIE_SECRET
+      );
+
+      Astro.cookies.set(AUTH_COOKIES.SESSION_TOKEN, encryptedSessionId, {
         path: "/",
         httpOnly: true,
         sameSite: "lax",

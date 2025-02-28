@@ -96,7 +96,12 @@ export async function GET({ request, clientAddress, cookies }: APIContext) {
       cookies.delete(AUTH_COOKIES.GOOGLE_OAUTH_STATE, { path: "/" });
       cookies.delete(AUTH_COOKIES.GOOGLE_CODE_CHALLENGE, { path: "/" });
 
-      cookies.set(AUTH_COOKIES.SESSION_TOKEN, sessionId, {
+      const encryptedSessionId = aesEncrypt(
+        sessionId,
+        EncryptionPurpose.SESSION_COOKIE_SECRET
+      );
+
+      cookies.set(AUTH_COOKIES.SESSION_TOKEN, encryptedSessionId, {
         path: "/",
         httpOnly: true,
         expires: expiresAt,
