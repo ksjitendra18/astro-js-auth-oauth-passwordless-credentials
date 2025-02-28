@@ -1,27 +1,14 @@
 import { generateOTP, generateRandomToken } from "../../../lib/random-string";
 import redis from "../../../lib/redis";
-import { FixedWindowRateLimiter } from "../../ratelimit/services";
 import { sendMail } from "../services/send";
 
-const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL;
+const SUPPORT_EMAIL = import.meta.env.SUPPORT_EMAIL;
 
 export const sendVerificationMail = async ({ email }: { email: string }) => {
   const token = generateOTP();
   const verificationId = generateRandomToken();
 
   try {
-    const rateLimiter = new FixedWindowRateLimiter(
-      `email_verification`,
-      60 * 60,
-      3
-    );
-
-    const ratelimitResponse = await rateLimiter.checkLimit(email);
-
-    if (!ratelimitResponse.allowed) {
-      return { allowed: ratelimitResponse.allowed, verificationId: null };
-    }
-
     const res = await sendMail({
       to: email,
       subject: `${token} is your email verification code`,
@@ -36,12 +23,12 @@ export const sendVerificationMail = async ({ email }: { email: string }) => {
     if (res.ok) {
       await redis.set(verificationId, `${token}:${email}`, "EX", 3600);
 
-      return { allowed: true, verificationId };
+      return { verificationId };
     } else {
       throw new Error("Error while sending mail");
     }
   } catch (error) {
-    console.log("error while sending mail", error);
+    console.error("error while sending verification mail", error);
     throw new Error("Error while sending mail");
   }
 };
@@ -57,14 +44,6 @@ export const sendMagicLink = async ({
   const verificationId = generateRandomToken();
 
   try {
-    const rateLimiter = new FixedWindowRateLimiter(`magic_link`, 60 * 60, 3);
-
-    const ratelimitResponse = await rateLimiter.checkLimit(email);
-
-    if (!ratelimitResponse.allowed) {
-      return { allowed: ratelimitResponse.allowed, verificationId: null };
-    }
-
     const res = await sendMail({
       to: email,
       subject: `Log in to Astro Auth`,
@@ -80,12 +59,12 @@ export const sendMagicLink = async ({
 
     if (res.ok) {
       await redis.set(verificationId, `${token}:${email}`, "EX", 7200);
-      return { allowed: true, verificationId };
+      return { verificationId };
     } else {
       throw new Error("Error while sending mail");
     }
   } catch (error) {
-    console.log("error while sending mail", error);
+    console.error("error while sending magic link mail", error);
     throw new Error("Error while sending mail");
   }
 };
@@ -102,20 +81,8 @@ export const sendPasswordResetMail = async ({
   const verificationId = generateRandomToken();
 
   try {
-    const rateLimiter = new FixedWindowRateLimiter(
-      `password_reset`,
-      60 * 60,
-      3
-    );
-
-    const ratelimitResponse = await rateLimiter.checkLimit(email);
-
-    if (!ratelimitResponse.allowed) {
-      return { allowed: ratelimitResponse.allowed, verificationId: null };
-    }
-
     if (!userExists) {
-      return { allowed: true, verificationId };
+      return { verificationId };
     }
 
     const res = await sendMail({
@@ -134,14 +101,13 @@ export const sendPasswordResetMail = async ({
       await redis.set(verificationId, email, "EX", 3600);
 
       return {
-        allowed: true,
         verificationId,
       };
     } else {
       throw new Error("Error while sending mail");
     }
   } catch (error) {
-    console.log("error while sending mail", error);
+    console.error("error while sending password reset mail", error);
     throw new Error("Error while sending mail");
   }
 };
@@ -177,18 +143,6 @@ export const sendAccountDeletionRequestMail = async ({
   const otpCode = generateOTP();
 
   try {
-    const rateLimiter = new FixedWindowRateLimiter(
-      `password_reset`,
-      60 * 60,
-      3
-    );
-
-    const ratelimitResponse = await rateLimiter.checkLimit(email);
-
-    if (!ratelimitResponse.allowed) {
-      return { allowed: ratelimitResponse.allowed, verificationId: null };
-    }
-
     const res = await sendMail({
       to: email,
       subject: `Account Deletion Request`,
@@ -204,14 +158,13 @@ export const sendAccountDeletionRequestMail = async ({
       await redis.set(verificationId, `${otpCode}:${email}`, "EX", 3600);
 
       return {
-        allowed: true,
         verificationId,
       };
     } else {
       throw new Error("Error while sending mail");
     }
   } catch (error) {
-    console.log("error while sending account deletion request mail", error);
+    console.error("error while sending account deletion request mail", error);
     throw new Error("Error while sending mail");
   }
 };
@@ -227,18 +180,6 @@ export const sendEmailChangeOtpMail = async ({
     const verificationId = generateRandomToken();
     const otpCode = generateOTP();
 
-    const rateLimiter = new FixedWindowRateLimiter(
-      `email_verification`,
-      60 * 60,
-      3
-    );
-
-    const ratelimitResponse = await rateLimiter.checkLimit(email);
-
-    if (!ratelimitResponse.allowed) {
-      return { allowed: ratelimitResponse.allowed, verificationId: null };
-    }
-
     const res = await sendMail({
       to: email,
       subject: `Email Change Request`,
@@ -253,12 +194,12 @@ export const sendEmailChangeOtpMail = async ({
     if (res.ok) {
       await redis.set(verificationId, `${otpCode}:${email}`, "EX", 3600);
 
-      return { allowed: true, verificationId };
+      return { verificationId };
     } else {
       throw new Error("Error while sending  mail");
     }
   } catch (err) {
-    console.log("Error while sending email change otp mail", err);
+    console.error("Error while sending email change otp mail", err);
     throw new Error("Error while sending email change otp mail");
   }
 };

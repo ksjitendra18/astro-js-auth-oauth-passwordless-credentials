@@ -76,24 +76,12 @@ export async function POST({ request, clientAddress }: APIContext) {
 
     const verificationMailResponse = await sendVerificationMail({ email });
 
-    if (!verificationMailResponse.allowed) {
-      return Response.json(
-        {
-          error: "rate_limit",
-          message: `Too many requests. Please try again later.`,
-        },
-        { status: 429 }
-      );
-    }
-
-    if (verificationMailResponse.verificationId) {
-      return Response.json(
-        { data: { id: verificationMailResponse.verificationId } },
-        { status: 201 }
-      );
-    }
+    return Response.json(
+      { data: { id: verificationMailResponse.verificationId } },
+      { status: 201 }
+    );
   } catch (error) {
-    console.log("Error while signup", error);
+    console.error("Error while signup", error);
     return Response.json(
       { error: "server_error", message: "Server Error" },
       { status: 500 }

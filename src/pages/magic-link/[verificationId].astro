@@ -12,6 +12,7 @@ import { create2FASession } from "../../features/auth/services/two-factor";
 import { createSession } from "../../features/auth/services/session";
 import { createLoginLog } from "../../features/auth/services/logs";
 import { AUTH_COOKIES } from "../../features/auth/constants";
+import { aesEncrypt, EncryptionPurpose } from "../../lib/aes";
 let isBanned = false;
 let serverError = false;
 let error = false;
@@ -31,7 +32,6 @@ if (!verificationData) {
 } else {
   const [code, userEmail] = verificationData.split(":");
   const parsedData = EmailSchema.safeParse(userEmail);
-  console.log(parsedData.error);
 
   if (!parsedData.success) {
     error = true;
@@ -109,7 +109,12 @@ if (!verificationData) {
       strategy: "magic_link",
     });
 
-    Astro.cookies.set(AUTH_COOKIES.SESSION_TOKEN, sessionId, {
+    const encryptedSessionId = aesEncrypt(
+      sessionId,
+      EncryptionPurpose.SESSION_COOKIE_SECRET
+    );
+
+    Astro.cookies.set(AUTH_COOKIES.SESSION_TOKEN, encryptedSessionId, {
       path: "/",
       httpOnly: true,
       sameSite: "lax",
@@ -121,7 +126,7 @@ if (!verificationData) {
 
     return Astro.redirect("/dashboard");
   } catch (error) {
-    console.log("Error in verifying magic link", error);
+    console.error("Error in verifying magic link", error);
     serverError = true;
   }
 }

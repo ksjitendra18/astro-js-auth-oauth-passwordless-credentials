@@ -33,7 +33,7 @@ export const createLoginLog = async ({
       device: parser.getPlatformType(),
     });
   } catch (error) {
-    console.log("Error while inserting logs", error);
+    console.error("Error while inserting logs", error);
     throw new Error("Failed to create logs");
   }
 };

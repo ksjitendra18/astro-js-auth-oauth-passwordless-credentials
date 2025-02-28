@@ -55,7 +55,7 @@ export const AccountDeletionForm = ({
 
     const enteredCode = formData.get("enteredCode");
     const confirmationText = formData.get("confirmationText");
-    console.log("confirmationText", confirmationText);
+
     if (confirmationText !== "delete my account") {
       setMsg("Invalid confirmation text");
       return;

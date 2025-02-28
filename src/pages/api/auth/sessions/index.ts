@@ -43,7 +43,7 @@ export async function DELETE({ cookies }: APIContext) {
 
     return Response.json({ success: true }, { status: 200 });
   } catch (error) {
-    console.log("error while deleting sessions", error);
+    console.error("Error while deleting sessions", error);
     return Response.json(
       {
         error: "server_error",

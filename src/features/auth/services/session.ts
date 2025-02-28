@@ -120,7 +120,6 @@ export const deleteSessionByUserId = async ({
   keepCurrentSession?: boolean;
   currentSessionId?: string;
 }) => {
-  console.log("userId", userId);
   if (keepCurrentSession) {
     return await trx
       .delete(sessions)

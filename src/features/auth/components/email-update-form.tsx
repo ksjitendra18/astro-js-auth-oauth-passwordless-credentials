@@ -46,13 +46,6 @@ export const EmailUpdateForm = ({ currentEmail }: { currentEmail: string }) => {
     const currentEmailOtp = formData.get("currentEmailOtp");
     const newEmailOtp = formData.get("newEmailOtp");
 
-    console.log("data", {
-      currentEmail,
-      newEmail,
-      currentEmailOtp,
-      newEmailOtp,
-    });
-
     try {
       const safeParsedData = UpdateEmailSchema.safeParse({
         currentEmail,

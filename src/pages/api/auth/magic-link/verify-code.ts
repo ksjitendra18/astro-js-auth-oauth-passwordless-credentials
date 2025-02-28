@@ -11,6 +11,7 @@ import {
 } from "../../../../features/auth/services/user";
 import redis from "../../../../lib/redis";
 import { TokenBucketRateLimiter } from "../../../../features/ratelimit/services";
+import { aesEncrypt, EncryptionPurpose } from "../../../../lib/aes";
 
 const RequestSchema = z.object({
   code: z.string(),
@@ -118,9 +119,15 @@ export async function POST({
       });
 
       await redis.del(magicLinkVerificationId);
+
       cookies.delete(AUTH_COOKIES.MAGIC_LINK_VERIFICATION_ID, { path: "/" });
 
-      cookies.set(AUTH_COOKIES.SESSION_TOKEN, sessionId, {
+      const encryptedSessionId = aesEncrypt(
+        sessionId,
+        EncryptionPurpose.SESSION_COOKIE_SECRET
+      );
+
+      cookies.set(AUTH_COOKIES.SESSION_TOKEN, encryptedSessionId, {
         path: "/",
         httpOnly: true,
         sameSite: "lax",
@@ -156,6 +163,8 @@ export async function POST({
         secure: import.meta.env.PROD,
       });
 
+      await redis.del(magicLinkVerificationId);
+
       return Response.json({
         message: "2FA required",
         redirect: "/verify-two-factor",
@@ -174,6 +183,7 @@ export async function POST({
     });
 
     await redis.del(magicLinkVerificationId);
+
     cookies.delete(AUTH_COOKIES.MAGIC_LINK_VERIFICATION_ID, { path: "/" });
     cookies.set(AUTH_COOKIES.SESSION_TOKEN, sessionId, {
       path: "/",

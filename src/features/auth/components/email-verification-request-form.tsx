@@ -51,13 +51,12 @@ export const EmailVerificationRequestForm = () => {
         return;
       }
 
-      // if (resData.data.verificationId) {
-      //   window.location.href = `/verify/${resData.data.verificationId}`;
-      // } else {
-      //   setVerificationErr("Internal server error. Please try again");
-      // }
+      if (resData.data.verificationId) {
+        window.location.href = `/verify/${resData.data.verificationId}`;
+      } else {
+        setVerificationErr("Internal server error. Please try again");
+      }
     } catch (error) {
-      console.log("error while verifying email", error);
       setVerificationErr("Unable to verify. Please try again later");
     } finally {
       setLoading(false);

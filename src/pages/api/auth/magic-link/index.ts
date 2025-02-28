@@ -2,10 +2,52 @@ import type { APIContext } from "astro";
 import { EmailSchema } from "../../../../features/auth/validations/email";
 import { sendMagicLink } from "../../../../features/email/templates/auth";
 import { AUTH_COOKIES } from "../../../../features/auth/constants";
+import { SlidingWindowRateLimiter } from "../../../../features/ratelimit/services";
 
-export async function POST({ request, url, cookies }: APIContext) {
+export async function POST({
+  request,
+  url,
+  cookies,
+  clientAddress,
+}: APIContext) {
   try {
     const { email }: { email: string } = await request.json();
+
+    const emailMagicLinkLimiter = new SlidingWindowRateLimiter(
+      "magic-link:email",
+      300,
+      3
+    );
+
+    const ipMagicLinkLimiter = new SlidingWindowRateLimiter(
+      "magic-link:ip",
+      600,
+      10
+    );
+
+    const ipResult = await ipMagicLinkLimiter.checkLimit(clientAddress);
+
+    if (!ipResult.allowed) {
+      return Response.json(
+        {
+          error: "rate_limit",
+          message: "Too many requests. Please try again later.",
+        },
+        { status: 429 }
+      );
+    }
+
+    const emailResult = await emailMagicLinkLimiter.checkLimit(email);
+
+    if (!emailResult.allowed) {
+      return Response.json(
+        {
+          error: "rate_limit",
+          message: "Too many requests. Please try again later.",
+        },
+        { status: 429 }
+      );
+    }
 
     const parsedData = EmailSchema.safeParse(email);
 
@@ -24,18 +66,10 @@ export async function POST({ request, url, cookies }: APIContext) {
       url: url.origin,
     });
 
-    if (!magicLinkResponse.allowed) {
-      return Response.json(
-        {
-          error: "rate_limit",
-          message: `Too many requests. Please try again later.`,
-        },
-        { status: 429 }
-      );
-    }
-
     const verificationId = magicLinkResponse.verificationId;
+
     const expiresAt = new Date(Date.now() + 2 * 3600 * 1000);
+
     cookies.set(AUTH_COOKIES.MAGIC_LINK_VERIFICATION_ID, verificationId, {
       path: "/",
       httpOnly: true,
@@ -49,7 +83,7 @@ export async function POST({ request, url, cookies }: APIContext) {
       { status: 200 }
     );
   } catch (err) {
-    console.log("Error while sending magic link mail", err);
+    console.error("Error while sending magic link mail", err);
     return Response.json(
       {
         error: "server_error",

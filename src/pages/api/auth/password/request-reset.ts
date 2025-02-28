@@ -58,16 +58,6 @@ export async function POST({ request, url, clientAddress }: APIContext) {
       userExists: !!userPassword,
     });
 
-    if (!passwordResetMailResponse.allowed) {
-      return Response.json(
-        {
-          error: "rate_limit",
-          message: `Too many requests. Please try again later.`,
-        },
-        { status: 429 }
-      );
-    }
-
     return Response.json(
       {
         message:
@@ -76,7 +66,7 @@ export async function POST({ request, url, clientAddress }: APIContext) {
       { status: 200 }
     );
   } catch (err) {
-    console.log("Error while sending password reset mail", err);
+    console.error("Error while sending password reset mail", err);
     return Response.json(
       {
         error: "server_error",

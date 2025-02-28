@@ -66,7 +66,7 @@ export const rotateRecoveryCodes = async (userId: string) => {
       const codes = await createRecoveryCodes({ userId, trx });
       return codes;
     } catch (error) {
-      console.log("could not rotate recovery codes", error);
+      console.error("could not rotate recovery codes", error);
       trx.rollback();
     }
   });
@@ -83,14 +83,12 @@ export const validateRecoveryCode = async ({
 
   let isValidCode = false;
   for (const recoveryCode of recoveryCodes) {
-    console.log("running for", recoveryCode);
     const decryptedCode = aesDecrypt(
       recoveryCode.code,
       EncryptionPurpose.RECOVERY_CODE
     );
 
     if (decryptedCode === enteredCode) {
-      console.log("valid!!");
       updateRecoveryCode(recoveryCode.id);
       isValidCode = true;
       break;

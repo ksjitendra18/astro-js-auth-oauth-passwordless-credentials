@@ -10,6 +10,7 @@ import {
   updateOauthUserEmail,
 } from "../../../../features/auth/services/user";
 import { AUTH_COOKIES } from "../../../../features/auth/constants";
+import { aesEncrypt, EncryptionPurpose } from "../../../../lib/aes";
 
 export async function GET({ request, clientAddress, cookies }: APIContext) {
   const urlSearchParams = new URL(request.url).searchParams;
@@ -171,7 +172,12 @@ export async function GET({ request, clientAddress, cookies }: APIContext) {
       strategy: "google",
     });
 
-    cookies.set(AUTH_COOKIES.SESSION_TOKEN, sessionId, {
+    const encryptedSessionId = aesEncrypt(
+      sessionId,
+      EncryptionPurpose.SESSION_COOKIE_SECRET
+    );
+
+    cookies.set(AUTH_COOKIES.SESSION_TOKEN, encryptedSessionId, {
       path: "/",
       httpOnly: true,
       expires: expiresAt,

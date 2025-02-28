@@ -6,6 +6,7 @@ import { getUserById } from "../../../../../features/auth/services/user";
 import redis from "../../../../../lib/redis";
 import { AUTH_COOKIES } from "../../../../../features/auth/constants";
 import { TokenBucketRateLimiter } from "../../../../../features/ratelimit/services";
+import { aesEncrypt, EncryptionPurpose } from "../../../../../lib/aes";
 
 export async function POST({ request, clientAddress, cookies }: APIContext) {
   try {
@@ -120,7 +121,12 @@ export async function POST({ request, clientAddress, cookies }: APIContext) {
     cookies.delete(AUTH_COOKIES.TWO_FA_AUTH, { path: "/" });
     cookies.delete(AUTH_COOKIES.LOGIN_METHOD, { path: "/" });
 
-    cookies.set(AUTH_COOKIES.SESSION_TOKEN, sessionId, {
+    const encryptedSessionId = aesEncrypt(
+      sessionId,
+      EncryptionPurpose.SESSION_COOKIE_SECRET
+    );
+
+    cookies.set(AUTH_COOKIES.SESSION_TOKEN, encryptedSessionId, {
       path: "/",
       httpOnly: true,
       expires: expiresAt,

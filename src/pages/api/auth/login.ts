@@ -14,10 +14,14 @@ import { aesEncrypt, EncryptionPurpose } from "../../../lib/aes";
 
 export async function POST({ clientAddress, request, cookies }: APIContext) {
   try {
-    const rateLimiter = new SlidingWindowRateLimiter("auth:login", 10 * 60, 10);
-    const ratelimitResponse = await rateLimiter.checkLimit(clientAddress);
+    const ipRateLimiter = new SlidingWindowRateLimiter(
+      "auth:login:ip",
+      10 * 60,
+      10
+    );
+    const ipRatelimitResponse = await ipRateLimiter.checkLimit(clientAddress);
 
-    if (!ratelimitResponse.allowed) {
+    if (!ipRatelimitResponse.allowed) {
       return Response.json(
         {
           error: "rate_limit",
@@ -28,6 +32,23 @@ export async function POST({ clientAddress, request, cookies }: APIContext) {
     }
     const { email, password }: { email: string; password: string } =
       await request.json();
+
+    const accountRateLimiter = new SlidingWindowRateLimiter(
+      "auth:login:email",
+      10 * 60,
+      10
+    );
+    const accountRatelimitResponse = await accountRateLimiter.checkLimit(email);
+
+    if (!accountRatelimitResponse.allowed) {
+      return Response.json(
+        {
+          error: "rate_limit",
+          message: "Too many requests. Please try again later.",
+        },
+        { status: 429 }
+      );
+    }
 
     const parsedData = LoginSchema.safeParse({
       email: email,

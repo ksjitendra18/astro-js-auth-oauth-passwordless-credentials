@@ -9,7 +9,7 @@ const RequestBodySchema = z.object({
   email: EmailSchema,
 });
 
-export async function POST({ url, request, cookies, clientAddress }: APIContext) {
+export async function POST({ request, clientAddress }: APIContext) {
   try {
     const requestLimiter = new FixedWindowRateLimiter(
       "auth:verify-email-request",
@@ -72,16 +72,6 @@ export async function POST({ url, request, cookies, clientAddress }: APIContext)
       email: parsedData.data.email,
     });
 
-    if (!res.allowed) {
-      return Response.json(
-        {
-          error: "rate_limit",
-          message: `Too many requests. Please try again later.`,
-        },
-        { status: 429 }
-      );
-    }
-
     return Response.json(
       {
         data: {
@@ -93,7 +83,7 @@ export async function POST({ url, request, cookies, clientAddress }: APIContext)
       { status: 200 }
     );
   } catch (error) {
-    console.log("Error while requesting email change", error);
+    console.error("Error while requesting verification", error);
     return Response.json(
       { error: "server_error", message: "Server Error" },
       { status: 500 }

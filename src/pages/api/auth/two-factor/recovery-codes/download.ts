@@ -39,7 +39,12 @@ export async function GET({ cookies }: APIContext) {
       });
     }
 
-    return new Response(codes.join("\n"), {
+    const downloadData = `Site: Astro auth\nEmail: ${
+      sessionInfo.user.email
+    }\n\n${codes.join("\n")}
+    `;
+
+    return new Response(downloadData, {
       headers: {
         "Content-Disposition": "attachment; filename=astro-auth-codes.txt",
         "Content-Type": "text/plain",

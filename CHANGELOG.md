@@ -1,5 +1,11 @@
 # Changelog
 
+## 28th February 2025
+
+Removed ratelimit from email templates as api endpoints are already rate limited
+
+
+
 ## 21st January 2025
 
 ### Changes

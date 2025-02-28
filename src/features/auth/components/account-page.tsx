@@ -242,7 +242,7 @@ export const AccountPage = ({
         ) : (
           <a
             href="/two-factor"
-            class="bg-black  my-5 mt-10 disabled:bg-black/60   flex items-center justify-center  px-10 py-2 w-full md:w-fit text-center rounded-md text-white "
+            class="bg-black  my-5 disabled:bg-black/60   flex items-center justify-center  px-10 py-2 w-full md:w-fit text-center rounded-md text-white "
           >
             Enable
           </a>

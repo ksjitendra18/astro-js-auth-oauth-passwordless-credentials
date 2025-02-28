@@ -72,16 +72,6 @@ export async function POST({
       email: parsedData.data,
     });
 
-    if (!accountDeleteMailResponse.allowed) {
-      return Response.json(
-        {
-          error: "rate_limit",
-          message: `Too many requests. Please try again later.`,
-        },
-        { status: 429 }
-      );
-    }
-
     cookies.set(
       AUTH_COOKIES.ACCOUNT_DELETION_ID,
       accountDeleteMailResponse.verificationId,
@@ -98,7 +88,7 @@ export async function POST({
       { status: 200 }
     );
   } catch (err) {
-    console.log("Error while sending password reset mail", err);
+    console.error("Error while sending account deletion mail", err);
     return Response.json(
       {
         error: "server_error",

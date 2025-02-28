@@ -110,16 +110,6 @@ export async function POST({
       url: url.origin,
     });
 
-    if (!res.allowed) {
-      return Response.json(
-        {
-          error: "rate_limit",
-          message: `Too many requests. Please try again later.`,
-        },
-        { status: 429 }
-      );
-    }
-
     const cookieKey =
       parsedData.data.type === "currentEmail"
         ? AUTH_COOKIES.CURRENT_EMAIL_CHANGE_ID
@@ -143,7 +133,7 @@ export async function POST({
       { status: 200 }
     );
   } catch (error) {
-    console.log("Error while requesting email change", error);
+    console.error("Error while requesting email change", error);
     return Response.json(
       { error: "server_error", message: "Server Error" },
       { status: 500 }
