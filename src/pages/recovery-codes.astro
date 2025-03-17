@@ -6,13 +6,13 @@ import { getUserById } from "../features/auth/services/user";
 const userId = Astro.locals?.userId;
 
 if (!userId) {
-  return Astro.redirect("/login");
+  return Astro.redirect("/login?redirect=/recovery-codes");
 }
 
 const currentUser = await getUserById(userId);
 
 if (!currentUser) {
-  return Astro.redirect("/login");
+  return Astro.redirect("/login?redirect=/recovery-codes");
 }
 
 const recoveryCodes = await getRecoveryCodes(userId);

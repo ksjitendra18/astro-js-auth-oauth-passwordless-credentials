@@ -1,5 +1,9 @@
 # Changelog
 
+## 17th March 2025
+
+Added redirect to page after login. redirectURL is sanitized to prevent open redirect vulnerabilities.
+
 ## 28th February 2025
 
 Added try catch in `getSessionInfo` to prevent server from crashing or throwing error while decrypting data

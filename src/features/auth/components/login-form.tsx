@@ -5,8 +5,9 @@ import { LoginSchema, type LoginSchemaType } from "../validations/login";
 import Loader2 from "lucide-solid/icons/loader-2";
 import Eye from "lucide-solid/icons/eye";
 import EyeOff from "lucide-solid/icons/eye-off";
+import { sanitizeRedirectUrl } from "../../../lib/url";
 
-export const LoginForm = () => {
+export const LoginForm = ({ url }: { url: URL }) => {
   const [validationIssue, setValidationIssue] =
     createSignal<z.ZodFormattedError<LoginSchemaType, string> | null>(null);
 
@@ -63,7 +64,9 @@ export const LoginForm = () => {
         return;
       }
       if (res.status === 200) {
-        window.location.replace("/dashboard");
+        const redirect = url.searchParams.get("redirect");
+        const sanitizedRedirect = sanitizeRedirectUrl(redirect);
+        window.location.replace(sanitizedRedirect);
       }
     } catch (error) {
       setError("Error while login. Please try again later");

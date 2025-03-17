@@ -1,5 +1,3 @@
-export const SESSION_TOKEN = "session_token";
-
 export const AUTH_COOKIES = {
   SESSION_TOKEN: "session_token",
   GITHUB_OAUTH_STATE: "github_oauth_state",

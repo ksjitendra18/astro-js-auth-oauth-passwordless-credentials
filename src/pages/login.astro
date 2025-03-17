@@ -1,8 +1,9 @@
 ---
-import {LoginForm} from "../features/auth/components/login-form";
+import { LoginForm } from "../features/auth/components/login-form";
 import MainLayout from "../layout/main-layout.astro";
 
 const isUserLoggedIn = !!Astro.locals.userId;
+
 if (isUserLoggedIn) {
   return Astro.redirect("/dashboard");
 }
@@ -51,10 +52,10 @@ if (isUserLoggedIn) {
         <div class="after-or w-[100%] h-[2px] bg-gray-300 ml-2"></div>
       </div>
 
-      <LoginForm client:load />
+      <LoginForm url={Astro.url} client:load />
     </div>
     <p class="text-center my-5">
-      Don't have an account? <a href="/signup" class="text-blue-700">Sign up</a>
+      Don't have an account? <a href=`/signup` class="text-blue-700">Sign up</a>
     </p>
   </div>
 </MainLayout>

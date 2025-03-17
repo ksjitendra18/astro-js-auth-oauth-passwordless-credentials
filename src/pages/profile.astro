@@ -9,13 +9,13 @@ const sessionToken = Astro.cookies.get(AUTH_COOKIES.SESSION_TOKEN)?.value;
 const sessionInfo = await getSessionInfo(sessionToken);
 
 if (!sessionInfo || !sessionInfo.user) {
-  return Astro.redirect("/login");
+  return Astro.redirect("/login?redirect=/profile");
 }
 
 const userProfileInfo = await getUserProfile(sessionInfo.user.id);
 
 if (!userProfileInfo) {
-  return Astro.redirect("/login");
+  return Astro.redirect("/login?redirect=/profile");
 }
 ---
 
@@ -50,8 +50,7 @@ if (!userProfileInfo) {
       />
 
       <div class="flex justify-end my-5">
-        <button class="bg-black px-6 py-2 rounded-md text-white">Save</button
-        >
+        <button class="bg-black px-6 py-2 rounded-md text-white">Save</button>
       </div>
     </form>
   </div>

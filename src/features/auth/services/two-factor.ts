@@ -27,7 +27,7 @@ export const enableTwoFactor = async ({
 }) => {
   return await db.transaction(async (trx) => {
     try {
-      await db
+      await trx
         .update(users)
         .set({
           twoFactorEnabled: true,
@@ -36,17 +36,19 @@ export const enableTwoFactor = async ({
         .where(eq(users.id, userId));
 
       await deleteRecoveryCodes({ userId, trx });
+
       const codes = await createRecoveryCodes({ userId, trx });
+
       await deleteSessionByUserId({
         userId,
         trx,
         currentSessionId,
         keepCurrentSession: true,
       });
+
       return { codes };
     } catch (error) {
       console.log("error while enabling two factor service", error);
-      trx.rollback();
       throw new Error("Error while enabling two factor");
     }
   });
@@ -54,7 +56,7 @@ export const enableTwoFactor = async ({
 
 export const disableTwoFactor = async ({ userId }: { userId: string }) => {
   return await db.transaction(async (trx) => {
-    await db
+    await trx
       .update(users)
       .set({
         twoFactorEnabled: false,

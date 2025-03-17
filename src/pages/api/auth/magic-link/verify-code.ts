@@ -96,7 +96,10 @@ export async function POST({
       );
     }
 
-    const userInfo = await getUserByEmail({ email: userEmail });
+    const userInfo = await getUserByEmail({
+      email: userEmail,
+      shouldNormalizeEmail: true,
+    });
 
     if (!userInfo) {
       const { userId } = await createUser({
@@ -204,7 +207,7 @@ export async function POST({
       redirect: "/dashboard",
     });
   } catch (err) {
-    console.log("Error while sending verifying magic link code", err);
+    console.log("Error while verifying magic link code", err);
     return Response.json(
       {
         error: "server_error",

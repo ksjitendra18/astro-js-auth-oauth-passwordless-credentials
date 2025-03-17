@@ -146,7 +146,7 @@ export const extendSession = async ({
   expiresAt,
 }: ExtendSession) => {
   const currentTime = new Date().getTime();
-  const twoDaysInMs = 2 * 24 * 60 * 60 * 1000; // 2 days in milliseconds
+  const twoDaysInMs = 2 * 24 * 60 * 60 * 1000;
 
   if (expiresAt - currentTime <= twoDaysInMs) {
     const newExpiresAt = new Date(

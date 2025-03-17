@@ -123,6 +123,9 @@ export const getOauthUserData = async ({
           eq(oauthProviders.providerUserId, String(providerId)),
           eq(oauthProviders.strategy, strategy)
         ),
+        columns: {
+          email: true,
+        },
       },
     },
   });
@@ -260,6 +263,16 @@ export const getUserAccountInfo = async (userId: string) => {
       },
       loginMethods: true,
       loginLogs: {
+        columns: {
+          os: true,
+          device: true,
+          browser: true,
+          strategy: true,
+          createdAt: true,
+          ip: true,
+          userId: true,
+          sessionId: true,
+        },
         orderBy: desc(loginLogs.createdAt),
       },
     },

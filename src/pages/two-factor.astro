@@ -8,13 +8,13 @@ import MainLayout from "../layout/main-layout.astro";
 const userId = Astro.locals?.userId;
 
 if (!userId) {
-  return Astro.redirect("/login");
+  return Astro.redirect("/login?redirect=/two-factor");
 }
 
 const userInfo = await getUserById(userId);
 
 if (!userInfo) {
-  return Astro.redirect("/login");
+  return Astro.redirect("/login?redirect=/two-factor");
 }
 
 const secret = authenticator.generateSecret(20);

@@ -113,7 +113,7 @@ export const loginMethods = sqliteTable(
       enum: ["github", "google", "password", "magic_link"],
     }).notNull(),
     createdAt: text().default(sql`CURRENT_TIMESTAMP`),
-    updatedAt: text("updated_at")
+    updatedAt: text()
       .default(sql`CURRENT_TIMESTAMP`)
       .$onUpdateFn(() => sql`CURRENT_TIMESTAMP`),
   },

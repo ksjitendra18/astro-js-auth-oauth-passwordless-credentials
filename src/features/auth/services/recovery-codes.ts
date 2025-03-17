@@ -67,7 +67,7 @@ export const rotateRecoveryCodes = async (userId: string) => {
       return codes;
     } catch (error) {
       console.error("could not rotate recovery codes", error);
-      trx.rollback();
+      throw new Error("Error while rotating recovery codes");
     }
   });
 };

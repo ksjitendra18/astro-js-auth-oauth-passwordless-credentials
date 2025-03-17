@@ -85,7 +85,6 @@ export const udpatePasswordAndDeleteSessions = async ({
         await trx.delete(sessions).where(eq(sessions.userId, userId));
       }
     } catch (error) {
-      trx.rollback();
       console.log("Error while updating password ", error);
       throw new Error("Error while updating password");
     }

@@ -10,12 +10,12 @@ const sessionToken = Astro.cookies.get(AUTH_COOKIES.SESSION_TOKEN)?.value;
 const sessionInfo = await getSessionInfo(sessionToken);
 
 if (!sessionInfo || !sessionInfo.user) {
-  return Astro.redirect("/login");
+  return Astro.redirect("/login?redirect=/account");
 }
 
 const userAccountInfo = await getUserAccountInfo(sessionInfo.user.id);
 if (!userAccountInfo) {
-  return Astro.redirect("/login");
+  return Astro.redirect("/login?redirect=/account");
 }
 ---
 
