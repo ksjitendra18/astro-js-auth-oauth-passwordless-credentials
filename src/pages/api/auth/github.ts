@@ -1,7 +1,6 @@
 import type { APIContext } from "astro";
-import queryString from "query-string";
-import { generateRandomToken } from "../../../lib/random-string";
 import { AUTH_COOKIES } from "../../../features/auth/constants";
+import { generateRandomToken } from "../../../lib/random-string";
 
 export async function GET({ cookies }: APIContext) {
   const githubOauthState = generateRandomToken(32);
@@ -13,21 +12,20 @@ export async function GET({ cookies }: APIContext) {
     secure: import.meta.env.PROD,
   });
 
-  const authorizationUrl = queryString.stringifyUrl({
-    url: "https://github.com/login/oauth/authorize",
-    query: {
-      scope: "user:email",
-      response_type: "code",
-      client_id: import.meta.env.GITHUB_AUTH_CLIENT,
-      redirect_uri: import.meta.env.GITHUB_AUTH_CALLBACK_URL,
-      state: githubOauthState,
-    },
+  const authorizationUrl = new URL("https://github.com/login/oauth/authorize");
+  const params = new URLSearchParams({
+    scope: "user:email",
+    response_type: "code",
+    client_id: import.meta.env.GITHUB_AUTH_CLIENT,
+    redirect_uri: import.meta.env.GITHUB_AUTH_CALLBACK_URL,
+    state: githubOauthState,
   });
+  authorizationUrl.search = params.toString();
 
   return new Response(null, {
     status: 302,
     headers: {
-      Location: authorizationUrl,
+      Location: authorizationUrl.toString(),
     },
   });
 }

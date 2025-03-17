@@ -1,5 +1,5 @@
 import type { APIContext } from "astro";
-import { AUTH_COOKIES } from "../../../../features/auth/constants";
+import { allLoginProvidersEnum, AUTH_COOKIES } from "../../../../features/auth/constants";
 import { createLoginLog } from "../../../../features/auth/services/logs";
 import { createSession } from "../../../../features/auth/services/session";
 import { validateTotpCode } from "../../../../features/auth/services/two-factor";
@@ -99,16 +99,10 @@ export async function POST({ request, clientAddress, cookies }: APIContext) {
       userId: userInfo.id,
     });
 
-    const validStrategies = [
-      "github",
-      "google",
-      "password",
-      "magic_link",
-    ] as const;
-    type LoginStrategy = (typeof validStrategies)[number];
+    type LoginStrategy = (typeof allLoginProvidersEnum)[number];
 
     const loginMethod = cookies.get(AUTH_COOKIES.LOGIN_METHOD)?.value;
-    const strategy: LoginStrategy = validStrategies.includes(
+    const strategy: LoginStrategy = allLoginProvidersEnum.includes(
       loginMethod as LoginStrategy
     )
       ? (loginMethod as LoginStrategy)

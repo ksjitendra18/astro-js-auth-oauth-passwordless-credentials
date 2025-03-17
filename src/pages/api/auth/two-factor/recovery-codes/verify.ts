@@ -4,7 +4,10 @@ import { validateRecoveryCode } from "../../../../../features/auth/services/reco
 import { createSession } from "../../../../../features/auth/services/session";
 import { getUserById } from "../../../../../features/auth/services/user";
 import redis from "../../../../../lib/redis";
-import { AUTH_COOKIES } from "../../../../../features/auth/constants";
+import {
+  allLoginProvidersEnum,
+  AUTH_COOKIES,
+} from "../../../../../features/auth/constants";
 import { TokenBucketRateLimiter } from "../../../../../features/ratelimit/services";
 import { aesEncrypt, EncryptionPurpose } from "../../../../../lib/aes";
 
@@ -96,15 +99,10 @@ export async function POST({ request, clientAddress, cookies }: APIContext) {
     });
 
     const loginMethod = cookies.get(AUTH_COOKIES.LOGIN_METHOD)?.value;
-    const validStrategies = [
-      "github",
-      "google",
-      "password",
-      "magic_link",
-    ] as const;
-    type LoginStrategy = (typeof validStrategies)[number];
 
-    const strategy: LoginStrategy = validStrategies.includes(
+    type LoginStrategy = (typeof allLoginProvidersEnum)[number];
+
+    const strategy: LoginStrategy = allLoginProvidersEnum.includes(
       loginMethod as LoginStrategy
     )
       ? (loginMethod as LoginStrategy)

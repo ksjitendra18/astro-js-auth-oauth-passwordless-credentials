@@ -1,8 +1,7 @@
 import type { APIContext } from "astro";
 import { createHash } from "node:crypto";
-import queryString from "query-string";
-import { generateRandomToken } from "../../../lib/random-string";
 import { AUTH_COOKIES } from "../../../features/auth/constants";
+import { generateRandomToken } from "../../../lib/random-string";
 
 export async function GET({ cookies }: APIContext) {
   const googleOauthState = generateRandomToken(32);
@@ -26,23 +25,25 @@ export async function GET({ cookies }: APIContext) {
     secure: import.meta.env.PROD,
   });
 
-  const authorizationUrl = queryString.stringifyUrl({
-    url: "https://accounts.google.com/o/oauth2/v2/auth",
-    query: {
-      scope: "openid email profile",
-      response_type: "code",
-      client_id: import.meta.env.GOOGLE_AUTH_CLIENT,
-      redirect_uri: import.meta.env.GOOGLE_AUTH_CALLBACK_URL,
-      state: googleOauthState,
-      code_challenge: codeChallenge,
-      code_challenge_method: "S256",
-    },
+  const authorizationUrl = new URL(
+    "https://accounts.google.com/o/oauth2/v2/auth"
+  );
+  const params = new URLSearchParams({
+    scope: "openid email profile",
+    response_type: "code",
+    client_id: import.meta.env.GOOGLE_AUTH_CLIENT,
+    redirect_uri: import.meta.env.GOOGLE_AUTH_CALLBACK_URL,
+    state: googleOauthState,
+    code_challenge: codeChallenge,
+    code_challenge_method: "S256",
   });
+
+  authorizationUrl.search = params.toString();
 
   return new Response(null, {
     status: 302,
     headers: {
-      Location: authorizationUrl,
+      Location: authorizationUrl.toString(),
     },
   });
 }

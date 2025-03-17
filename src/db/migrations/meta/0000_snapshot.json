@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "a05f9d3e-7a36-4d43-b5b1-732912e44154",
+  "id": "db224b9f-b250-479d-91b5-a5857de56975",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "login_logs": {
@@ -14,15 +14,15 @@
           "notNull": true,
           "autoincrement": false
         },
-        "sessionId": {
-          "name": "sessionId",
+        "session_id": {
+          "name": "session_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "userId": {
-          "name": "userId",
+        "user_id": {
+          "name": "user_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -63,8 +63,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "createdAt": {
-          "name": "createdAt",
+        "created_at": {
+          "name": "created_at",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -76,18 +76,18 @@
         "login_logs_user_id_idx": {
           "name": "login_logs_user_id_idx",
           "columns": [
-            "userId"
+            "user_id"
           ],
           "isUnique": false
         }
       },
       "foreignKeys": {
-        "login_logs_sessionId_sessions_id_fk": {
-          "name": "login_logs_sessionId_sessions_id_fk",
+        "login_logs_session_id_sessions_id_fk": {
+          "name": "login_logs_session_id_sessions_id_fk",
           "tableFrom": "login_logs",
           "tableTo": "sessions",
           "columnsFrom": [
-            "sessionId"
+            "session_id"
           ],
           "columnsTo": [
             "id"
@@ -95,12 +95,12 @@
           "onDelete": "cascade",
           "onUpdate": "cascade"
         },
-        "login_logs_userId_users_id_fk": {
-          "name": "login_logs_userId_users_id_fk",
+        "login_logs_user_id_users_id_fk": {
+          "name": "login_logs_user_id_users_id_fk",
           "tableFrom": "login_logs",
           "tableTo": "users",
           "columnsFrom": [
-            "userId"
+            "user_id"
           ],
           "columnsTo": [
             "id"
@@ -123,8 +123,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "userId": {
-          "name": "userId",
+        "user_id": {
+          "name": "user_id",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -137,8 +137,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "createdAt": {
-          "name": "createdAt",
+        "created_at": {
+          "name": "created_at",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -158,18 +158,18 @@
         "login_method_user_id_idx": {
           "name": "login_method_user_id_idx",
           "columns": [
-            "userId"
+            "user_id"
           ],
           "isUnique": false
         }
       },
       "foreignKeys": {
-        "login_methods_userId_users_id_fk": {
-          "name": "login_methods_userId_users_id_fk",
+        "login_methods_user_id_users_id_fk": {
+          "name": "login_methods_user_id_users_id_fk",
           "tableFrom": "login_methods",
           "tableTo": "users",
           "columnsFrom": [
-            "userId"
+            "user_id"
           ],
           "columnsTo": [
             "id"
@@ -192,15 +192,15 @@
           "notNull": true,
           "autoincrement": false
         },
-        "providerUserId": {
-          "name": "providerUserId",
+        "provider_user_id": {
+          "name": "provider_user_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "userId": {
-          "name": "userId",
+        "user_id": {
+          "name": "user_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -220,8 +220,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "createdAt": {
-          "name": "createdAt",
+        "created_at": {
+          "name": "created_at",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -233,26 +233,26 @@
         "oauth_providers_user_id_idx": {
           "name": "oauth_providers_user_id_idx",
           "columns": [
-            "userId"
+            "user_id"
           ],
           "isUnique": false
         },
         "oauth_providers_provider_user_id_strategy_idx": {
           "name": "oauth_providers_provider_user_id_strategy_idx",
           "columns": [
-            "providerUserId",
+            "provider_user_id",
             "strategy"
           ],
           "isUnique": false
         }
       },
       "foreignKeys": {
-        "oauth_providers_userId_users_id_fk": {
-          "name": "oauth_providers_userId_users_id_fk",
+        "oauth_providers_user_id_users_id_fk": {
+          "name": "oauth_providers_user_id_users_id_fk",
           "tableFrom": "oauth_providers",
           "tableTo": "users",
           "columnsFrom": [
-            "userId"
+            "user_id"
           ],
           "columnsTo": [
             "id"
@@ -275,8 +275,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "userId": {
-          "name": "userId",
+        "user_id": {
+          "name": "user_id",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -289,16 +289,16 @@
           "notNull": true,
           "autoincrement": false
         },
-        "createdAt": {
-          "name": "createdAt",
+        "created_at": {
+          "name": "created_at",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
-        "updatedAt": {
-          "name": "updatedAt",
+        "updated_at": {
+          "name": "updated_at",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -310,18 +310,18 @@
         "passwords_user_id_idx": {
           "name": "passwords_user_id_idx",
           "columns": [
-            "userId"
+            "user_id"
           ],
           "isUnique": false
         }
       },
       "foreignKeys": {
-        "passwords_userId_users_id_fk": {
-          "name": "passwords_userId_users_id_fk",
+        "passwords_user_id_users_id_fk": {
+          "name": "passwords_user_id_users_id_fk",
           "tableFrom": "passwords",
           "tableTo": "users",
           "columnsFrom": [
-            "userId"
+            "user_id"
           ],
           "columnsTo": [
             "id"
@@ -344,8 +344,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "userId": {
-          "name": "userId",
+        "user_id": {
+          "name": "user_id",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -358,24 +358,24 @@
           "notNull": true,
           "autoincrement": false
         },
-        "isUsed": {
-          "name": "isUsed",
+        "is_used": {
+          "name": "is_used",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false,
           "default": false
         },
-        "createdAt": {
-          "name": "createdAt",
+        "created_at": {
+          "name": "created_at",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
-        "updatedAt": {
-          "name": "updatedAt",
+        "updated_at": {
+          "name": "updated_at",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -387,18 +387,18 @@
         "recovery_codes_user_id_idx": {
           "name": "recovery_codes_user_id_idx",
           "columns": [
-            "userId"
+            "user_id"
           ],
           "isUnique": false
         }
       },
       "foreignKeys": {
-        "recovery_codes_userId_users_id_fk": {
-          "name": "recovery_codes_userId_users_id_fk",
+        "recovery_codes_user_id_users_id_fk": {
+          "name": "recovery_codes_user_id_users_id_fk",
           "tableFrom": "recovery_codes",
           "tableTo": "users",
           "columnsFrom": [
-            "userId"
+            "user_id"
           ],
           "columnsTo": [
             "id"
@@ -421,22 +421,22 @@
           "notNull": true,
           "autoincrement": false
         },
-        "userId": {
-          "name": "userId",
+        "user_id": {
+          "name": "user_id",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
-        "expiresAt": {
-          "name": "expiresAt",
+        "expires_at": {
+          "name": "expires_at",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "createdAt": {
-          "name": "createdAt",
+        "created_at": {
+          "name": "created_at",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -446,12 +446,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "sessions_userId_users_id_fk": {
-          "name": "sessions_userId_users_id_fk",
+        "sessions_user_id_users_id_fk": {
+          "name": "sessions_user_id_users_id_fk",
           "tableFrom": "sessions",
           "tableTo": "users",
           "columnsFrom": [
-            "userId"
+            "user_id"
           ],
           "columnsTo": [
             "id"
@@ -474,8 +474,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "fullName": {
-          "name": "fullName",
+        "full_name": {
+          "name": "full_name",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -488,76 +488,76 @@
           "notNull": true,
           "autoincrement": false
         },
-        "normalizedEmail": {
-          "name": "normalizedEmail",
+        "normalized_email": {
+          "name": "normalized_email",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "profilePhoto": {
-          "name": "profilePhoto",
+        "profile_photo": {
+          "name": "profile_photo",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
-        "emailVerified": {
-          "name": "emailVerified",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": false
-        },
-        "twoFactorEnabled": {
-          "name": "twoFactorEnabled",
+        "email_verified": {
+          "name": "email_verified",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
           "default": false
         },
-        "twoFactorSecret": {
-          "name": "twoFactorSecret",
+        "two_factor_enabled": {
+          "name": "two_factor_enabled",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "two_factor_secret": {
+          "name": "two_factor_secret",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
-        "isBanned": {
-          "name": "isBanned",
+        "is_banned": {
+          "name": "is_banned",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false,
           "default": false
         },
-        "banReason": {
-          "name": "banReason",
+        "ban_reason": {
+          "name": "ban_reason",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
-        "isDeleted": {
-          "name": "isDeleted",
+        "is_deleted": {
+          "name": "is_deleted",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false,
           "default": false
         },
-        "createdAt": {
-          "name": "createdAt",
+        "created_at": {
+          "name": "created_at",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
-        "updatedAt": {
-          "name": "updatedAt",
+        "updated_at": {
+          "name": "updated_at",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -576,7 +576,7 @@
         "users_normalizedEmail_unique": {
           "name": "users_normalizedEmail_unique",
           "columns": [
-            "normalizedEmail"
+            "normalized_email"
           ],
           "isUnique": true
         }

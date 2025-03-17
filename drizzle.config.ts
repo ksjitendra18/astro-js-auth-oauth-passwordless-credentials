@@ -7,6 +7,7 @@ export default defineConfig({
   dialect: "turso",
   schema: "./src/db/schema/index.ts",
   out: "./src/db/migrations",
+  casing: "snake_case",
   dbCredentials: {
     url: process.env.DB_URL!,
     authToken: process.env.DB_TOKEN!,

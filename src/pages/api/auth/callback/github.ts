@@ -1,15 +1,14 @@
 import type { APIContext } from "astro";
-import queryString from "query-string";
+import { AUTH_COOKIES } from "../../../../features/auth/constants";
+import { createLoginLog } from "../../../../features/auth/services/logs";
+import { createSession } from "../../../../features/auth/services/session";
+import { create2FASession } from "../../../../features/auth/services/two-factor";
 import {
-  getOauthUserData,
   createOauthProvider,
   createUser,
+  getOauthUserData,
   updateOauthUserEmail,
 } from "../../../../features/auth/services/user";
-import { createSession } from "../../../../features/auth/services/session";
-import { createLoginLog } from "../../../../features/auth/services/logs";
-import { create2FASession } from "../../../../features/auth/services/two-factor";
-import { AUTH_COOKIES } from "../../../../features/auth/constants";
 import { aesEncrypt, EncryptionPurpose } from "../../../../lib/aes";
 
 type EmailRes = (
@@ -27,7 +26,12 @@ type EmailRes = (
     }
 )[];
 
-export async function GET({ request, clientAddress, cookies }: APIContext) {
+export async function GET({
+  request,
+  clientAddress,
+  cookies,
+  url,
+}: APIContext) {
   const searchParams = new URL(request.url).searchParams;
   const code = searchParams?.get("code");
   const state = searchParams?.get("state");
@@ -46,17 +50,16 @@ export async function GET({ request, clientAddress, cookies }: APIContext) {
   }
 
   try {
-    const tokenUrl = queryString.stringifyUrl({
-      url: "https://github.com/login/oauth/access_token",
-      query: {
-        client_id: import.meta.env.GITHUB_AUTH_CLIENT,
-        client_secret: import.meta.env.GITHUB_AUTH_SECRET,
-        code: code,
-        scope: "user:email",
-      },
+    const tokenUrl = new URL("https://github.com/login/oauth/access_token");
+    const params = new URLSearchParams({
+      client_id: import.meta.env.GITHUB_AUTH_CLIENT,
+      client_secret: import.meta.env.GITHUB_AUTH_SECRET,
+      code: code,
+      scope: "user:email",
     });
+    tokenUrl.search = params.toString();
 
-    const tokenResponse = await fetch(tokenUrl, {
+    const tokenResponse = await fetch(tokenUrl.toString(), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

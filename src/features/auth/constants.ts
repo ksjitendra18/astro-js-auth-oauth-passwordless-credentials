@@ -1,3 +1,12 @@
+export const oauthProvidersEnum = ["google", "github"] as const;
+
+export const allLoginProvidersEnum = [
+  "google",
+  "github",
+  "password",
+  "magic_link",
+] as const;
+
 export const AUTH_COOKIES = {
   SESSION_TOKEN: "session_token",
   GITHUB_OAUTH_STATE: "github_oauth_state",

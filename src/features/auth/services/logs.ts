@@ -1,13 +1,14 @@
 import Bowser from "bowser";
 import { db } from "../../../db/index";
 import { loginLogs } from "../../../db/schema";
+import { allLoginProvidersEnum } from "../constants";
 
 type CreateLoginLogParams = {
   userAgent: string | null;
   userId: string;
   sessionId: string;
   ip: string;
-  strategy: "github" | "google" | "password" | "magic_link";
+  strategy: (typeof allLoginProvidersEnum)[number];
 };
 
 export const createLoginLog = async ({

@@ -1,8 +1,16 @@
+## Note: 
+Main and other branches are not in sync with the blog post. I will be updating the branches and blog posts with the latest changes. Please consider main branch as the latest version.
+
+
 # Astro Authentication Guide: Google Github OAuth Guide, Email Password
 
 This repo is for the series of blog post covering Authentication in Astro.
 
 Main branch contains the latest updated code. If you're following the blog post, please use the specific branch for the post.
+
+## Security
+
+If you find any security vulnerability, please contact me at jitendra@everythingcs.dev
 
 ## Technolgies Used
 

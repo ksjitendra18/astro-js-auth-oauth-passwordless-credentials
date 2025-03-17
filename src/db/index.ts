@@ -13,7 +13,11 @@ const client = createClient({
   authToken: import.meta.env.DB_TOKEN,
 });
 
-export const db = drizzle(client, { schema, logger: false });
+export const db = drizzle(client, {
+  schema,
+  logger: false,
+  casing: "snake_case",
+});
 
 type Schema = typeof schema;
 

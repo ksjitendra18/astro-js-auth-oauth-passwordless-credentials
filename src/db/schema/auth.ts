@@ -1,14 +1,10 @@
 import { relations, sql } from "drizzle-orm";
 import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { v7 as uuidv7 } from "uuid";
-
-const socialProvidersEnum = ["google", "github"] as const;
-const allLoginProvidersEnum = [
-  "google",
-  "github",
-  "password",
-  "magic_link",
-] as const;
+import {
+  allLoginProvidersEnum,
+  oauthProvidersEnum,
+} from "../../features/auth/constants";
 
 export const users = sqliteTable("users", {
   id: text()
@@ -80,7 +76,7 @@ export const oauthProviders = sqliteTable(
         onUpdate: "cascade",
       }),
     email: text().notNull(),
-    strategy: text({ enum: socialProvidersEnum }).notNull(),
+    strategy: text({ enum: oauthProvidersEnum }).notNull(),
     createdAt: text().default(sql`CURRENT_TIMESTAMP`),
   },
   (table) => [
@@ -110,7 +106,7 @@ export const loginMethods = sqliteTable(
       onUpdate: "cascade",
     }),
     method: text("method", {
-      enum: ["github", "google", "password", "magic_link"],
+      enum: allLoginProvidersEnum,
     }).notNull(),
     createdAt: text().default(sql`CURRENT_TIMESTAMP`),
     updatedAt: text()

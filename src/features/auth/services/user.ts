@@ -7,13 +7,14 @@ import {
   users,
 } from "../../../db/schema";
 import { normalizeEmail } from "../utils";
+import type { allLoginProvidersEnum, oauthProvidersEnum } from "../constants";
 
 type NewUserParams = {
   email: string;
   fullName: string;
   profilePhoto: string;
   emailVerified: boolean;
-  loginMethod: "password" | "magic_link" | "github" | "google";
+  loginMethod: (typeof allLoginProvidersEnum)[number];
 };
 
 export const createUser = async ({
@@ -103,7 +104,7 @@ export const getOauthUserData = async ({
 }: {
   email: string;
   providerId: string;
-  strategy: "github" | "google";
+  strategy: (typeof oauthProvidersEnum)[number];
 }) => {
   const normalizedEmail = normalizeEmail(email);
   const userData = await db.query.users.findFirst({
@@ -157,7 +158,7 @@ export const createOauthProvider = async ({
   providerId: string | number;
   userId: string;
   email: string;
-  strategy: "github" | "google";
+  strategy: (typeof oauthProvidersEnum)[number];
 }) => {
   try {
     await db.insert(oauthProviders).values({
@@ -289,7 +290,7 @@ export const checkAndAddLoginMethod = async ({
   method,
 }: {
   userId: string;
-  method: "password" | "magic_link" | "github" | "google";
+  method: (typeof allLoginProvidersEnum)[number];
 }) => {
   const loginMethodExists = await db.query.loginMethods.findFirst({
     columns: {
