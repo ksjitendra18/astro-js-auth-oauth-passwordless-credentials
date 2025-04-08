@@ -5,23 +5,18 @@ import { createLoginLog } from "../../../../features/auth/services/logs";
 import { createSession } from "../../../../features/auth/services/session";
 import { create2FASession } from "../../../../features/auth/services/two-factor";
 import {
-  checkAndAddLoginMethod,
   createUser,
   getUserByEmail,
 } from "../../../../features/auth/services/user";
-import redis from "../../../../lib/redis";
 import { TokenBucketRateLimiter } from "../../../../features/ratelimit/services";
 import { aesEncrypt, EncryptionPurpose } from "../../../../lib/aes";
+import redis from "../../../../lib/redis";
 
 const RequestSchema = z.object({
   code: z.string(),
 });
-export async function POST({
-  request,
-  url,
-  cookies,
-  clientAddress,
-}: APIContext) {
+
+export async function POST({ request, cookies, clientAddress }: APIContext) {
   try {
     const rateLimiter = new TokenBucketRateLimiter(
       "auth:magic-link",
@@ -107,7 +102,6 @@ export async function POST({
         fullName: "",
         profilePhoto: "",
         emailVerified: true,
-        loginMethod: "magic_link",
       });
       const { sessionId, expiresAt } = await createSession({
         userId: userId,
@@ -143,11 +137,6 @@ export async function POST({
         redirect: "/dashboard",
       });
     }
-
-    await checkAndAddLoginMethod({
-      userId: userInfo.id,
-      method: "magic_link",
-    });
 
     if (userInfo.twoFactorEnabled) {
       const faSess = await create2FASession(userInfo.id);

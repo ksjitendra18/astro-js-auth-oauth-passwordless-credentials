@@ -19,11 +19,14 @@ export const users = sqliteTable("users", {
   twoFactorSecret: text(),
   isBanned: integer({ mode: "boolean" }).default(false),
   banReason: text(),
-  isDeleted: integer({ mode: "boolean" }).default(false),
-  createdAt: text().default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: text()
-    .default(sql`CURRENT_TIMESTAMP`)
-    .$onUpdateFn(() => sql`CURRENT_TIMESTAMP`),
+  // isDeleted: integer({ mode: "boolean" }).default(false),
+  deletedAt: integer(),
+  createdAt: integer({ mode: "timestamp" })
+    .default(sql`(unixepoch())`)
+    .notNull(),
+  updatedAt: integer({ mode: "timestamp" })
+    .default(sql`(unixepoch())`)
+    .$onUpdateFn(() => sql`(unixepoch())`),
 });
 
 export const usersRelations = relations(users, ({ many, one }) => ({
@@ -32,7 +35,6 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   passwords: one(passwords),
   oauthProviders: many(oauthProviders),
   recoveryCodes: many(recoveryCodes),
-  loginMethods: many(loginMethods),
 }));
 
 export const passwords = sqliteTable(
@@ -41,16 +43,21 @@ export const passwords = sqliteTable(
     id: text()
       .$default(() => uuidv7())
       .primaryKey(),
-    userId: text().references(() => users.id, {
-      onDelete: "cascade",
-      onUpdate: "cascade",
-    }),
+
+    userId: text()
+      .references(() => users.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      })
+      .notNull(),
 
     password: text().notNull(),
-    createdAt: text().default(sql`CURRENT_TIMESTAMP`),
-    updatedAt: text()
-      .default(sql`CURRENT_TIMESTAMP`)
-      .$onUpdateFn(() => sql`CURRENT_TIMESTAMP`),
+    createdAt: integer({ mode: "timestamp" })
+      .default(sql`(unixepoch())`)
+      .notNull(),
+    updatedAt: integer({ mode: "timestamp" })
+      .default(sql`(unixepoch())`)
+      .$onUpdateFn(() => sql`(unixepoch())`),
   },
   (table) => [index("passwords_user_id_idx").on(table.userId)]
 );
@@ -77,7 +84,9 @@ export const oauthProviders = sqliteTable(
       }),
     email: text().notNull(),
     strategy: text({ enum: oauthProvidersEnum }).notNull(),
-    createdAt: text().default(sql`CURRENT_TIMESTAMP`),
+    createdAt: integer({ mode: "timestamp" })
+      .default(sql`(unixepoch())`)
+      .notNull(),
   },
   (table) => [
     index("oauth_providers_user_id_idx").on(table.userId),
@@ -95,45 +104,25 @@ export const oauthProviderRelations = relations(oauthProviders, ({ one }) => ({
   }),
 }));
 
-export const loginMethods = sqliteTable(
-  "login_methods",
+export const sessions = sqliteTable(
+  "sessions",
   {
     id: text()
       .$default(() => uuidv7())
       .primaryKey(),
-    userId: text().references(() => users.id, {
-      onDelete: "cascade",
-      onUpdate: "cascade",
-    }),
-    method: text("method", {
-      enum: allLoginProvidersEnum,
-    }).notNull(),
-    createdAt: text().default(sql`CURRENT_TIMESTAMP`),
-    updatedAt: text()
-      .default(sql`CURRENT_TIMESTAMP`)
-      .$onUpdateFn(() => sql`CURRENT_TIMESTAMP`),
+    userId: text()
+      .references(() => users.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      })
+      .notNull(),
+    expiresAt: integer().notNull(),
+    createdAt: integer({ mode: "timestamp" })
+      .default(sql`(unixepoch())`)
+      .notNull(),
   },
-  (table) => [index("login_method_user_id_idx").on(table.userId)]
+  (table) => [index("session_user_id_idx").on(table.userId)]
 );
-
-export const loginMethodRelations = relations(loginMethods, ({ one }) => ({
-  user: one(users, {
-    fields: [loginMethods.userId],
-    references: [users.id],
-  }),
-}));
-
-export const sessions = sqliteTable("sessions", {
-  id: text()
-    .$default(() => uuidv7())
-    .primaryKey(),
-  userId: text().references(() => users.id, {
-    onDelete: "cascade",
-    onUpdate: "cascade",
-  }),
-  expiresAt: integer().notNull(),
-  createdAt: text().default(sql`CURRENT_TIMESTAMP`),
-});
 
 export const sessionRelations = relations(sessions, ({ one }) => ({
   user: one(users, {
@@ -172,7 +161,9 @@ export const loginLogs = sqliteTable(
     device: text().notNull(),
     os: text().notNull(),
     ip: text().notNull(),
-    createdAt: text().default(sql`CURRENT_TIMESTAMP`),
+    createdAt: integer({ mode: "timestamp" })
+      .default(sql`(unixepoch())`)
+      .notNull(),
   },
   (table) => [index("login_logs_user_id_idx").on(table.userId)]
 );
@@ -194,16 +185,20 @@ export const recoveryCodes = sqliteTable(
     id: text()
       .$defaultFn(() => uuidv7())
       .primaryKey(),
-    userId: text().references(() => users.id, {
-      onDelete: "cascade",
-      onUpdate: "cascade",
-    }),
+    userId: text()
+      .references(() => users.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      })
+      .notNull(),
     code: text().notNull(),
     isUsed: integer({ mode: "boolean" }).default(false),
-    createdAt: text().default(sql`CURRENT_TIMESTAMP`),
-    updatedAt: text()
-      .default(sql`CURRENT_TIMESTAMP`)
-      .$onUpdateFn(() => sql`CURRENT_TIMESTAMP`),
+    createdAt: integer({ mode: "timestamp" })
+      .default(sql`(unixepoch())`)
+      .notNull(),
+    updatedAt: integer({ mode: "timestamp" })
+      .default(sql`(unixepoch())`)
+      .$onUpdateFn(() => sql`(unixepoch())`),
   },
   (table) => [index("recovery_codes_user_id_idx").on(table.userId)]
 );

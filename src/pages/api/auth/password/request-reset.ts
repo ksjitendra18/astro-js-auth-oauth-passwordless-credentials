@@ -52,7 +52,7 @@ export async function POST({ request, url, clientAddress }: APIContext) {
 
     const userPassword = await getUserPassword({ userId: userInfo.id });
 
-    const passwordResetMailResponse = await sendPasswordResetMail({
+    await sendPasswordResetMail({
       email: parsedData.data,
       url: url.origin,
       userExists: !!userPassword,

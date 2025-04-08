@@ -25,14 +25,12 @@ export const AccountPage = ({
   currentSessionId,
   userAccountInfo,
 }: AccountPageProps) => {
-  const { fullName, email, oauthProviders, loginLogs, loginMethods } =
+  const { fullName, email, oauthProviders, loginLogs, passwords } =
     userAccountInfo;
 
-  const isPasswordLogin = loginMethods.some(
-    (loginMethod) => loginMethod.method === "password"
-  );
+  const isPasswordLogin = !!passwords;
 
-  const logs = loginLogs.sort((a, b) =>
+  const logs = loginLogs.sort((a) =>
     a.sessionId === currentSessionId ? -1 : 1
   );
   function capitalizeFirstWord(text: string) {
@@ -305,7 +303,11 @@ export const AccountPage = ({
                   </td>
                   <td class="px-4 py-4 text-sm font-mono">{log.ip}</td>
                   <td class="px-4 py-4 text-sm">
-                    {log.createdAt ? formatDate(log.createdAt) : "-"}
+                    <span>
+                      {log.createdAt.toLocaleDateString() +
+                        " " +
+                        log.createdAt.toLocaleTimeString()}
+                    </span>
                   </td>
                   <td class="px-4 py-4 text-sm">
                     {currentSessionId !== log.sessionId ? (
@@ -333,7 +335,7 @@ export const AccountPage = ({
         </div>
 
         <div class="md:hidden my-4 space-y-4">
-          {logs.map((log, index) => (
+          {logs.map((log) => (
             <div class="bg-white rounded-lg border p-4 space-y-3">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
@@ -363,7 +365,9 @@ export const AccountPage = ({
                 </div>
                 <div class="flex justify-between">
                   <span class="text-gray-500">Login Time</span>
-                  <span>{log.createdAt ? formatDate(log.createdAt) : "-"}</span>
+                  {log.createdAt.toLocaleDateString() +
+                    " " +
+                    log.createdAt.toLocaleTimeString()}
                 </div>
               </div>
 

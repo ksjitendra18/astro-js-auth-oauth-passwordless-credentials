@@ -3,11 +3,7 @@ import MainLayout from "../../layout/main-layout.astro";
 
 import redis from "../../lib/redis";
 import { EmailSchema } from "../../features/auth/validations/email";
-import {
-  checkAndAddLoginMethod,
-  createUser,
-  getUserByEmail,
-} from "../../features/auth/services/user";
+import { createUser, getUserByEmail } from "../../features/auth/services/user";
 import { create2FASession } from "../../features/auth/services/two-factor";
 import { createSession } from "../../features/auth/services/session";
 import { createLoginLog } from "../../features/auth/services/logs";
@@ -30,7 +26,7 @@ const verificationData: string | null = await redis.get(
 if (!verificationData) {
   error = true;
 } else {
-  const [code, userEmail] = verificationData.split(":");
+  const [, userEmail] = verificationData.split(":");
   const parsedData = EmailSchema.safeParse(userEmail);
 
   if (!parsedData.success) {
@@ -48,7 +44,6 @@ if (!verificationData) {
         fullName: "",
         profilePhoto: "",
         emailVerified: true,
-        loginMethod: "magic_link",
       });
 
       const { sessionId, expiresAt } = await createSession({
@@ -80,11 +75,6 @@ if (!verificationData) {
 
       return Astro.redirect("/profile");
     }
-
-    await checkAndAddLoginMethod({
-      userId: userInfo.id,
-      method: "magic_link",
-    });
 
     if (userInfo.twoFactorEnabled) {
       const faSess = await create2FASession(userInfo.id);

@@ -1,5 +1,11 @@
 # Changelog
 
+## 8th April 2025
+
+### Changes
+
+Removed login_method table
+
 ## 17th March 2025
 
 ### Changes
@@ -8,9 +14,9 @@ Schema Changes: setup `casing` to `snake_case` in Drizzle ORM.
 
 Removed `query-string` package and replaced it with `URLSearchParams`.
 
-Fixed types
+Fixed types.
 
-Added redirect to page after login. redirectURL is sanitized to prevent open redirect vulnerabilities.
+Added redirect to page after login. redirectURL is sanitized to prevent open redirect vulnerability.
 
 ## 28th February 2025
 

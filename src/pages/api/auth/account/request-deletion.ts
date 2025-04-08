@@ -5,12 +5,7 @@ import { EmailSchema } from "../../../../features/auth/validations/email";
 import { sendAccountDeletionRequestMail } from "../../../../features/email/templates/auth";
 import { SlidingWindowRateLimiter } from "../../../../features/ratelimit/services";
 
-export async function POST({
-  request,
-  url,
-  clientAddress,
-  cookies,
-}: APIContext) {
+export async function POST({ request, clientAddress, cookies }: APIContext) {
   try {
     const rateLimiter = new SlidingWindowRateLimiter(
       "auth:delete-account-request",

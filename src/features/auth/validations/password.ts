@@ -9,5 +9,3 @@ export const PasswordSchema = string({ required_error: "Password is required" })
   });
 
 export type PasswordSchemaType = z.infer<typeof PasswordSchema>;
-
-export default PasswordSchema;

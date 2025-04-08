@@ -3,7 +3,7 @@ import { and, eq, ne } from "drizzle-orm";
 import { db } from "../../../db";
 import { passwords, sessions } from "../../../db/schema";
 
-export const hashPassword = async (password: string) => {
+const hashPassword = async (password: string) => {
   return await hash(password, {
     memoryCost: 19456,
     timeCost: 2,

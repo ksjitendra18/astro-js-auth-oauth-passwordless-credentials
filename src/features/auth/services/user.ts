@@ -1,20 +1,14 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 import { db } from "../../../db/index";
-import {
-  loginLogs,
-  loginMethods,
-  oauthProviders,
-  users,
-} from "../../../db/schema";
+import { loginLogs, oauthProviders, users } from "../../../db/schema";
+import type { oauthProvidersEnum } from "../constants";
 import { normalizeEmail } from "../utils";
-import type { allLoginProvidersEnum, oauthProvidersEnum } from "../constants";
 
 type NewUserParams = {
   email: string;
   fullName: string;
   profilePhoto: string;
   emailVerified: boolean;
-  loginMethod: (typeof allLoginProvidersEnum)[number];
 };
 
 export const createUser = async ({
@@ -22,7 +16,6 @@ export const createUser = async ({
   fullName,
   profilePhoto,
   emailVerified,
-  loginMethod,
 }: NewUserParams) => {
   try {
     const normalizedEmail = normalizeEmail(email);
@@ -36,11 +29,6 @@ export const createUser = async ({
         emailVerified,
       })
       .returning({ id: users.id });
-
-    await db.insert(loginMethods).values({
-      userId: newUser.id,
-      method: loginMethod,
-    });
 
     return { userId: newUser.id };
   } catch (error) {
@@ -76,7 +64,7 @@ export const getUserByEmail = async ({
         formattedEmail
       ),
       eq(users.isBanned, false),
-      eq(users.isDeleted, false)
+      isNull(users.deletedAt)
     ),
   });
 };
@@ -92,7 +80,7 @@ export const getUserById = async (id: string) => {
     where: and(
       eq(users.id, id),
       eq(users.isBanned, false),
-      eq(users.isDeleted, false)
+      isNull(users.deletedAt)
     ),
   });
 };
@@ -111,7 +99,7 @@ export const getOauthUserData = async ({
     where: and(
       eq(users.normalizedEmail, normalizedEmail),
       eq(users.isBanned, false),
-      eq(users.isDeleted, false)
+      isNull(users.deletedAt)
     ),
     columns: {
       id: true,
@@ -167,11 +155,6 @@ export const createOauthProvider = async ({
       strategy,
       email,
     });
-
-    await db.insert(loginMethods).values({
-      userId,
-      method: strategy,
-    });
   } catch (error) {
     console.log("Error while creating oauth provider", error);
     throw new Error("Error while creating oauth provider");
@@ -200,10 +183,6 @@ export const updateEmailVerificationStatus = async (userId: string) => {
       emailVerified: true,
     })
     .where(eq(users.id, userId));
-};
-
-export const deleteUserByEmail = async (email: string) => {
-  return await db.delete(users).where(eq(users.email, email));
 };
 
 export const getUserProfile = async (usersId: string) => {
@@ -249,6 +228,7 @@ export const updateUserEmail = async ({
 
 export const getUserAccountInfo = async (userId: string) => {
   return await db.query.users.findFirst({
+    where: eq(users.id, userId),
     columns: {
       id: true,
       fullName: true,
@@ -256,13 +236,17 @@ export const getUserAccountInfo = async (userId: string) => {
       twoFactorEnabled: true,
     },
     with: {
+      passwords: {
+        columns: {
+          id: true,
+        },
+      },
       oauthProviders: {
         columns: {
           id: true,
           strategy: true,
         },
       },
-      loginMethods: true,
       loginLogs: {
         columns: {
           os: true,
@@ -277,38 +261,12 @@ export const getUserAccountInfo = async (userId: string) => {
         orderBy: desc(loginLogs.createdAt),
       },
     },
-    where: eq(users.id, userId),
   });
 };
 
 export type UserAccountInfo = NonNullable<
   Awaited<ReturnType<typeof getUserAccountInfo>>
 >;
-
-export const checkAndAddLoginMethod = async ({
-  userId,
-  method,
-}: {
-  userId: string;
-  method: (typeof allLoginProvidersEnum)[number];
-}) => {
-  const loginMethodExists = await db.query.loginMethods.findFirst({
-    columns: {
-      id: true,
-    },
-    where: and(
-      eq(loginMethods.userId, userId),
-      eq(loginMethods.method, method)
-    ),
-  });
-  if (loginMethodExists) {
-    return;
-  }
-  return await db.insert(loginMethods).values({
-    userId,
-    method,
-  });
-};
 
 // you may want to perform soft deletion.
 // user table has the field isDeleted

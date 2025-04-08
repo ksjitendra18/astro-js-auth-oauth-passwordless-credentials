@@ -14,12 +14,7 @@ const RequestBodySchema = z.object({
   enteredCode: z.string(),
 });
 
-export async function POST({
-  request,
-  url,
-  clientAddress,
-  cookies,
-}: APIContext) {
+export async function POST({ request, clientAddress, cookies }: APIContext) {
   try {
     const rateLimiter = new SlidingWindowRateLimiter(
       "auth:delete-account-confirmation",
@@ -116,7 +111,9 @@ export async function POST({
       );
     }
 
+    cookies.delete(AUTH_COOKIES.ACCOUNT_DELETION_ID);
     await deleteAccount(sessionInfo.user.id);
+    await redis.del(sessionInfo.id);
     await redis.del(deletionId);
 
     return Response.json(

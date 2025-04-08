@@ -38,7 +38,7 @@ export const createRecoveryCodes = async ({
   return codes;
 };
 
-export const updateRecoveryCode = async (recoveryCodeId: string) => {
+const updateRecoveryCode = async (recoveryCodeId: string) => {
   await db
     .update(recoveryCodes)
     .set({

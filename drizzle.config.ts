@@ -3,6 +3,7 @@ import { defineConfig } from "drizzle-kit";
 if (!process.env.DB_URL || !process.env.DB_TOKEN) {
   throw new Error("DB_URL and DB_TOKEN missing");
 }
+
 export default defineConfig({
   dialect: "turso",
   schema: "./src/db/schema/index.ts",

@@ -1,5 +1,6 @@
 import type { APIContext } from "astro";
 
+import { AUTH_COOKIES } from "../../../../features/auth/constants";
 import { createLoginLog } from "../../../../features/auth/services/logs";
 import { createSession } from "../../../../features/auth/services/session";
 import { create2FASession } from "../../../../features/auth/services/two-factor";
@@ -9,7 +10,6 @@ import {
   getOauthUserData,
   updateOauthUserEmail,
 } from "../../../../features/auth/services/user";
-import { AUTH_COOKIES } from "../../../../features/auth/constants";
 import { aesEncrypt, EncryptionPurpose } from "../../../../lib/aes";
 
 export async function GET({ request, clientAddress, cookies }: APIContext) {
@@ -52,16 +52,17 @@ export async function GET({ request, clientAddress, cookies }: APIContext) {
     const tokenData = await tokenResponse.json();
 
     const oauthProviderUserResponse = await fetch(
-      "https://www.googleapis.com/oauth2/v2/userinfo",
+      "https://openidconnect.googleapis.com/v1/userinfo",
       {
         headers: { Authorization: `Bearer ${tokenData.access_token}` },
       }
     );
+
     const oauthProviderUserData = await oauthProviderUserResponse.json();
 
     const { userData, oauthData } = await getOauthUserData({
       email: oauthProviderUserData.email,
-      providerId: oauthProviderUserData.id,
+      providerId: oauthProviderUserData.sub,
       strategy: "google",
     });
 
@@ -71,7 +72,6 @@ export async function GET({ request, clientAddress, cookies }: APIContext) {
         fullName: oauthProviderUserData.name,
         profilePhoto: oauthProviderUserData.picture,
         emailVerified: true,
-        loginMethod: "google",
       });
 
       await createOauthProvider({

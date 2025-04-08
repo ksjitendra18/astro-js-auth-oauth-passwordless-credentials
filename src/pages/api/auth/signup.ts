@@ -66,7 +66,6 @@ export async function POST({ request, clientAddress }: APIContext) {
       fullName: name,
       profilePhoto: "",
       emailVerified: false,
-      loginMethod: "password",
     });
 
     await createPassword({

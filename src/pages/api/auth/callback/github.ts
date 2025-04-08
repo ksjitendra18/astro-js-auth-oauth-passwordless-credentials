@@ -32,7 +32,7 @@ export async function GET({
   cookies,
   url,
 }: APIContext) {
-  const searchParams = new URL(request.url).searchParams;
+  const searchParams = new URL(url).searchParams;
   const code = searchParams?.get("code");
   const state = searchParams?.get("state");
 
@@ -120,7 +120,6 @@ export async function GET({
         fullName: oauthProviderUserData.name,
         profilePhoto: oauthProviderUserData.avatar_url,
         emailVerified: true,
-        loginMethod: "github",
       });
 
       await createOauthProvider({
