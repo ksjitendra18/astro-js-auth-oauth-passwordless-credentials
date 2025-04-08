@@ -75,7 +75,7 @@ export async function POST({ request, clientAddress }: APIContext) {
     return Response.json(
       {
         data: {
-          verificationid: res.verificationId,
+          verificatioId: res.verificationId,
         },
         message:
           "Email sent successfully. Please check your inbox and spam folder",

@@ -81,7 +81,9 @@ export async function POST({ clientAddress, request }: APIContext) {
       );
     }
 
+    console.log("updating");
     await updateEmailVerificationStatus(userInfo.id);
+    console.log("deleting");
     await redis.del(id);
 
     return Response.json({
@@ -89,7 +91,7 @@ export async function POST({ clientAddress, request }: APIContext) {
       message: "Email Verified",
     });
   } catch (error) {
-    console.log("error while verifying email", false);
+    console.log("error while verifying email", error);
     return Response.json(
       { error: "server_error", message: "Server Error" },
       { status: 500 }

@@ -26,7 +26,8 @@ export const users = sqliteTable("users", {
     .notNull(),
   updatedAt: integer({ mode: "timestamp" })
     .default(sql`(unixepoch())`)
-    .$onUpdateFn(() => sql`(unixepoch())`),
+    // .$onUpdateFn(() => sql`(unixepoch())`), // THIS IS GIVING ERROR
+    .$onUpdateFn(() => new Date()),
 });
 
 export const usersRelations = relations(users, ({ many, one }) => ({
@@ -57,7 +58,7 @@ export const passwords = sqliteTable(
       .notNull(),
     updatedAt: integer({ mode: "timestamp" })
       .default(sql`(unixepoch())`)
-      .$onUpdateFn(() => sql`(unixepoch())`),
+      .$onUpdateFn(() => new Date()),
   },
   (table) => [index("passwords_user_id_idx").on(table.userId)]
 );
@@ -198,7 +199,7 @@ export const recoveryCodes = sqliteTable(
       .notNull(),
     updatedAt: integer({ mode: "timestamp" })
       .default(sql`(unixepoch())`)
-      .$onUpdateFn(() => sql`(unixepoch())`),
+      .$onUpdateFn(() => new Date()),
   },
   (table) => [index("recovery_codes_user_id_idx").on(table.userId)]
 );
