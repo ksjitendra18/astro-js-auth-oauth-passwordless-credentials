@@ -105,7 +105,7 @@ export const PasswordUpdateForm = () => {
 
           <Show when={validationIssue()?.oldPassword}>
             <div class="flex flex-col ">
-              {validationIssue()?.newPassword?._errors?.map((err) => (
+              {validationIssue()?.oldPassword?._errors?.map((err) => (
                 <p class="mt-2 bg-red-500 text-white rounded-md px-3 py-2">
                   {err}
                 </p>

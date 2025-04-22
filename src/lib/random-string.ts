@@ -7,7 +7,10 @@ export const generateRandomToken = customAlphabet(
   64
 );
 
-export const generateRecoveryCode = customAlphabet(
-  "123456789abcdefghjklmnpqrstuvwxyz",
-  4
-);
+export const generateRecoveryCode = () => {
+  const generateCodeSegment = customAlphabet(
+    "123456789abcdefghjklmnpqrstuvwxyz",
+    3
+  );
+  return `${generateCodeSegment()}-${generateCodeSegment()}-${generateCodeSegment()}`;
+};

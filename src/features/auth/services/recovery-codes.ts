@@ -20,20 +20,14 @@ export const createRecoveryCodes = async ({
   userId: string;
   trx?: Transaction | typeof db;
 }) => {
-  let codes: string[] = [];
-  for (let i = 0; i < 6; i++) {
-    const code = `${generateRecoveryCode()}-${generateRecoveryCode()}-${generateRecoveryCode()}`;
-    codes.push(code);
-  }
+  const codes = Array.from({ length: 6 }, () => generateRecoveryCode());
 
-  await trx.insert(recoveryCodes).values([
-    { userId, code: aesEncrypt(codes[0], EncryptionPurpose.RECOVERY_CODE) },
-    { userId, code: aesEncrypt(codes[1], EncryptionPurpose.RECOVERY_CODE) },
-    { userId, code: aesEncrypt(codes[2], EncryptionPurpose.RECOVERY_CODE) },
-    { userId, code: aesEncrypt(codes[3], EncryptionPurpose.RECOVERY_CODE) },
-    { userId, code: aesEncrypt(codes[4], EncryptionPurpose.RECOVERY_CODE) },
-    { userId, code: aesEncrypt(codes[5], EncryptionPurpose.RECOVERY_CODE) },
-  ]);
+  const recoveryCodeData = codes.map((code) => ({
+    userId,
+    code: aesEncrypt(code, EncryptionPurpose.RECOVERY_CODE),
+  }));
+
+  await trx.insert(recoveryCodes).values(recoveryCodeData);
 
   return codes;
 };

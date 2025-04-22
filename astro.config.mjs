@@ -1,14 +1,25 @@
-import { defineConfig } from "astro/config";
+import { defineConfig, fontProviders } from "astro/config";
 import vercel from "@astrojs/vercel";
-import tailwind from "@astrojs/tailwind";
 import solidJs from "@astrojs/solid-js";
+import tailwindcss from "@tailwindcss/vite";
 
-// https://astro.build/config
 export default defineConfig({
   output: "server",
   adapter: vercel(),
-  integrations: [tailwind(), solidJs()],
+  integrations: [solidJs()],
+  vite: {
+    plugins: [tailwindcss()],
+  },
   security: {
     checkOrigin: true,
+  },
+  experimental: {
+    fonts: [
+      {
+        provider: fontProviders.google(),
+        name: "Inter",
+        cssVariable: "--font-inter",
+      },
+    ],
   },
 });
