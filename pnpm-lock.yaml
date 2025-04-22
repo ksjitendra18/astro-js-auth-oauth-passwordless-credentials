@@ -17,6 +17,9 @@ importers:
       '@astrojs/vercel':
         specifier: ^8.1.3
         version: 8.1.3(astro@5.7.4(@types/node@22.14.1)(ioredis@5.6.1)(jiti@2.4.2)(lightningcss@1.29.2)(rollup@4.40.0)(typescript@5.8.3)(yaml@2.7.1))(rollup@4.40.0)
+      '@fontsource-variable/inter':
+        specifier: ^5.2.5
+        version: 5.2.5
       '@libsql/client':
         specifier: ^0.14.0
         version: 0.14.0
@@ -675,6 +678,9 @@ packages:
     engines: {node: '>=18'}
     cpu: [x64]
     os: [win32]
+
+  '@fontsource-variable/inter@5.2.5':
+    resolution: {integrity: sha512-TrWffUAFOnT8zroE9YmGybagoOgM/HjRqMQ8k9R0vVgXlnUh/vnpbGPAS/Caz1KIlOPnPGh6fvJbb7DHbFCncA==}
 
   '@img/sharp-darwin-arm64@0.33.5':
     resolution: {integrity: sha512-UT4p+iz/2H4twwAoLCqfA9UH5pI6DggwKEGuaPy7nCVQ8ZsiY5PIcrRvD1DzuY3qYL07NtIQcWnBSY/heikIFQ==}
@@ -3734,6 +3740,8 @@ snapshots:
 
   '@esbuild/win32-x64@0.25.2':
     optional: true
+
+  '@fontsource-variable/inter@5.2.5': {}
 
   '@img/sharp-darwin-arm64@0.33.5':
     optionalDependencies:

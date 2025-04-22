@@ -13,14 +13,4 @@ export default defineConfig({
   security: {
     checkOrigin: true,
   },
-  experimental: {
-    fonts: [
-      {
-        provider: fontProviders.google(),
-        name: "Inter",
-        cssVariable: "--font-inter",
-        subsets: ["latin"],
-      },
-    ],
-  },
 });

@@ -4,7 +4,6 @@
 
 Added schema for `PostgreSQL` and `MySQL`
 Updated to tailwind v4
-Experimental: Astro Font 
 
 ### Changes
 

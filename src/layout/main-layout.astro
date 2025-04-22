@@ -1,7 +1,7 @@
 ---
 import Navbar from "../components/navbar.astro";
+import "@fontsource-variable/inter";
 
-import { Font } from "astro:assets";
 import "../global.css";
 
 type Props = {
@@ -19,7 +19,6 @@ const { title, description } = Astro.props;
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <Font cssVariable="--font-inter" preload />
   </head>
   <body>
     <Navbar />
