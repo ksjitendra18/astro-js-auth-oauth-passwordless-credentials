@@ -19,6 +19,7 @@ export default defineConfig({
         provider: fontProviders.google(),
         name: "Inter",
         cssVariable: "--font-inter",
+        subsets: ["latin"],
       },
     ],
   },
