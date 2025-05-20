@@ -1,6 +1,6 @@
 import Loader2 from "lucide-solid/icons/loader-2";
 import { createSignal, Show, type JSX } from "solid-js";
-import * as z from "zod";
+import * as z from "zod/v4";
 import { EmailSchema } from "../validations/email";
 import {
   UpdateEmailSchema,

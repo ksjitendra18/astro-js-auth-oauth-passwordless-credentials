@@ -1,5 +1,5 @@
 import { Show, createSignal, type JSX } from "solid-js";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { LoginSchema, type LoginSchemaType } from "../validations/login";
 
 import Loader2 from "lucide-solid/icons/loader-2";
@@ -9,7 +9,7 @@ import { sanitizeRedirectUrl } from "../../../lib/url";
 
 export const LoginForm = ({ url }: { url: URL }) => {
   const [validationIssue, setValidationIssue] =
-    createSignal<z.ZodFormattedError<LoginSchemaType, string> | null>(null);
+    createSignal<z.core.$ZodErrorTree<LoginSchemaType, string> | null>(null);
 
   const [error, setError] = createSignal("");
   const [unverifiedEmail, setUnverifiedEmail] = createSignal(false);
@@ -34,7 +34,7 @@ export const LoginForm = ({ url }: { url: URL }) => {
       const safeParsedData = LoginSchema.safeParse({ email, password });
 
       if (!safeParsedData.success) {
-        setValidationIssue(safeParsedData.error.format());
+        setValidationIssue(z.treeifyError(safeParsedData.error));
 
         return;
       }
@@ -87,13 +87,15 @@ export const LoginForm = ({ url }: { url: URL }) => {
             id="email"
             required
             class={`${
-              validationIssue()?.email ? "border-red-600" : "border-slate-600"
+              validationIssue()?.properties?.email
+                ? "border-red-600"
+                : "border-slate-600"
             } px-3 w-full  py-2 rounded-md border-2`}
           />
 
-          <Show when={validationIssue()?.email}>
+          <Show when={validationIssue()?.properties?.email}>
             <div class="flex flex-col">
-              {validationIssue()?.email?._errors?.map((err) => (
+              {validationIssue()?.properties?.email?.errors?.map((err) => (
                 <p class="my-5 bg-red-500  text-white rounded-md px-3 py-2">
                   {err}
                 </p>
@@ -120,7 +122,7 @@ export const LoginForm = ({ url }: { url: URL }) => {
               id="password"
               required
               class={`${
-                validationIssue()?.password
+                validationIssue()?.properties?.password
                   ? "border-red-600"
                   : "border-slate-600"
               }  px-3 w-full  py-2 rounded-md border-2`}
@@ -141,9 +143,9 @@ export const LoginForm = ({ url }: { url: URL }) => {
             </button>
           </div>
 
-          <Show when={validationIssue()?.password}>
+          <Show when={validationIssue()?.properties?.password}>
             <div class="flex flex-col ">
-              {validationIssue()?.password?._errors?.map((err) => (
+              {validationIssue()?.properties?.password?.errors?.map((err) => (
                 <p class="mt-2 bg-red-500 text-white rounded-md px-3 py-2">
                   {err}
                 </p>
