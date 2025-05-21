@@ -16,7 +16,7 @@
     "@astrojs/solid-js": "^5.0.10",
     "@astrojs/vercel": "^8.1.4",
     "@fontsource-variable/inter": "^5.2.5",
-    "@libsql/client": "^0.15.6",
+    "@libsql/client": "^0.15.7",
     "@node-rs/argon2": "^2.0.2",
     "@tailwindcss/vite": "^4.1.7",
     "astro": "^5.7.13",
@@ -31,10 +31,10 @@
     "tailwindcss": "^4.1.7",
     "typescript": "^5.8.3",
     "uuid": "^11.1.0",
-    "zod": "^3.25.7"
+    "zod": "^3.25.17"
   },
   "devDependencies": {
-    "@types/node": "^22.15.19",
+    "@types/node": "^22.15.21",
     "@types/qrcode": "^1.5.5",
     "drizzle-kit": "^0.31.1"
   }
