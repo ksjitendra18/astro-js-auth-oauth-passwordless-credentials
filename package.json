@@ -11,11 +11,6 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate"
   },
-  "pnpm": {
-    "overrides": {
-      "vite": "npm:rolldown-vite@latest"
-    }
-  },
   "dependencies": {
     "@astrojs/check": "^0.9.4",
     "@astrojs/solid-js": "^5.1.0",
