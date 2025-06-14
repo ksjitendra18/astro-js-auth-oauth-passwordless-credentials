@@ -2,7 +2,7 @@
 // because generally DELETE can't accept body
 
 import type { APIContext } from "astro";
-import * as z from "zod";
+import * as z from "zod/v4";
 import { AUTH_COOKIES } from "../../../../features/auth/constants";
 import { getSessionInfo } from "../../../../features/auth/services/session";
 import { deleteAccount } from "../../../../features/auth/services/user";
@@ -10,7 +10,7 @@ import { SlidingWindowRateLimiter } from "../../../../features/ratelimit/service
 import redis from "../../../../lib/redis";
 
 const RequestBodySchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
   enteredCode: z.string(),
 });
 
@@ -67,7 +67,7 @@ export async function POST({ request, clientAddress, cookies }: APIContext) {
       return Response.json(
         {
           error: "validation_error",
-          message: parsedData.error.format(),
+          message: z.treeifyError(parsedData.error),
         },
         { status: 400 }
       );

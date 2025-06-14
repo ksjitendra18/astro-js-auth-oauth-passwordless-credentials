@@ -7,6 +7,7 @@ import {
 } from "../../../../features/auth/services/user";
 import redis from "../../../../lib/redis";
 import { AUTH_COOKIES } from "../../../../features/auth/constants";
+import { z } from "zod/v4";
 
 export async function PATCH({ request, cookies }: APIContext) {
   try {
@@ -31,7 +32,7 @@ export async function PATCH({ request, cookies }: APIContext) {
       return Response.json(
         {
           error: "validation_error",
-          message: parsedData.error.format(),
+          message: z.treeifyError(parsedData.error),
         },
         { status: 400 }
       );

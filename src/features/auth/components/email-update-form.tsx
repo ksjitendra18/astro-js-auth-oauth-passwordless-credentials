@@ -9,7 +9,7 @@ import {
 
 export const EmailUpdateForm = ({ currentEmail }: { currentEmail: string }) => {
   const [validationIssue, setValidationIssue] =
-    createSignal<z.ZodFormattedError<UpdateEmailSchemaType, string> | null>(
+    createSignal<z.core.$ZodErrorTree<UpdateEmailSchemaType, string> | null>(
       null
     );
 
@@ -55,7 +55,7 @@ export const EmailUpdateForm = ({ currentEmail }: { currentEmail: string }) => {
       });
 
       if (!safeParsedData.success) {
-        setValidationIssue(safeParsedData.error.format());
+        setValidationIssue(z.treeifyError(safeParsedData.error));
         return;
       }
 
@@ -188,7 +188,7 @@ export const EmailUpdateForm = ({ currentEmail }: { currentEmail: string }) => {
             onInput={handleNewEmailChange}
             required
             class={`${
-              validationIssue()?.newEmail
+              validationIssue()?.properties?.newEmail
                 ? "border-red-600"
                 : "border-slate-600"
             }  px-3 w-full  py-2 rounded-md border-2`}
@@ -233,9 +233,9 @@ export const EmailUpdateForm = ({ currentEmail }: { currentEmail: string }) => {
             </button>
           </Show>
 
-          <Show when={validationIssue()?.newEmail}>
+          <Show when={validationIssue()?.properties?.newEmail}>
             <div class="flex flex-col ">
-              {validationIssue()?.newEmail?._errors?.map((err) => (
+              {validationIssue()?.properties?.newEmail?.errors?.map((err) => (
                 <p class="mt-2 bg-red-500 text-white rounded-md px-3 py-2">
                   {err}
                 </p>

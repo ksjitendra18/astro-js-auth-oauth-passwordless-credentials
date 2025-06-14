@@ -1,10 +1,10 @@
-import { string, z } from "zod";
+import { string, z } from "zod/v4";
 
-export const PasswordSchema = string({ required_error: "Password is required" })
+export const PasswordSchema = string({ error: "Password is required" })
   .min(8, "Password should be more than 8 characters")
   .trim()
   .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/, {
-    message:
+    error:
       "Password must contain a lowercase letter, uppercase letter, number, and symbol",
   });
 

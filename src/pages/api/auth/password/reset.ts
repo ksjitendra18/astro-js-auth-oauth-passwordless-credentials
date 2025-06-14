@@ -4,7 +4,7 @@ import { udpatePasswordAndDeleteSessions } from "../../../../features/auth/servi
 import { getUserByEmail } from "../../../../features/auth/services/user";
 import redis from "../../../../lib/redis";
 import { PasswordSchema } from "../../../../features/auth/validations/password";
-import * as z from "zod";
+import * as z from "zod/v4";
 import { sendPasswordResetConfirmationMail } from "../../../../features/email/templates/auth";
 
 const RequestBodySchema = z.object({
@@ -21,7 +21,7 @@ export async function POST({ request }: APIContext) {
     return Response.json(
       {
         error: "validation_error",
-        message: parsedData.error.format(),
+        message: z.treeifyError(parsedData.error),
       },
       { status: 400 }
     );

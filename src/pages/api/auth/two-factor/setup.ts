@@ -1,5 +1,5 @@
 import type { APIContext } from "astro";
-import * as z from "zod";
+import * as z from "zod/v4";
 import { AUTH_COOKIES } from "../../../../features/auth/constants";
 import { getSessionInfo } from "../../../../features/auth/services/session";
 import {
@@ -11,10 +11,10 @@ import { aesEncrypt, EncryptionPurpose } from "../../../../lib/aes";
 
 const RequestBodySchema = z.object({
   secretCode: z
-    .string({ required_error: "Secret code is required" })
+    .string({ error: "Secret code is required" })
     .min(32, "Secret code should be equal to 32 characters")
     .max(32, "Secret code should be equal to 32 characters"),
-  enteredCode: z.string({ required_error: "Entered code is required" }),
+  enteredCode: z.string({ error: "Entered code is required" }),
 });
 
 export async function POST({ request, cookies, url }: APIContext) {
@@ -27,7 +27,7 @@ export async function POST({ request, cookies, url }: APIContext) {
       return Response.json(
         {
           error: "validation_error",
-          message: parsedData.error.format(),
+          message: z.treeifyError(parsedData.error),
         },
         { status: 400 }
       );

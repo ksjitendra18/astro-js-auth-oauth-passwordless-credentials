@@ -1,5 +1,5 @@
 import { createSignal, Show, type JSX } from "solid-js";
-import * as z from "zod";
+import * as z from "zod/v4";
 import {
   UpdatePasswordSchema,
   type UpdatePasswordSchemaType,
@@ -8,7 +8,7 @@ import Loader2 from "lucide-solid/icons/loader-2";
 
 export const PasswordUpdateForm = () => {
   const [validationIssue, setValidationIssue] =
-    createSignal<z.ZodFormattedError<UpdatePasswordSchemaType, string> | null>(
+    createSignal<z.core.$ZodErrorTree<UpdatePasswordSchemaType, string> | null>(
       null
     );
 
@@ -39,7 +39,7 @@ export const PasswordUpdateForm = () => {
       });
 
       if (!safeParsedData.success) {
-        setValidationIssue(safeParsedData.error.format());
+        setValidationIssue(z.treeifyError(safeParsedData.error));
 
         return;
       }
@@ -76,7 +76,7 @@ export const PasswordUpdateForm = () => {
               id="oldPassword"
               required
               class={`${
-                validationIssue()?.oldPassword
+                validationIssue()?.properties?.oldPassword
                   ? "border-red-600"
                   : "border-slate-600"
               }  px-3 w-full  py-2 rounded-md border-2`}
@@ -103,9 +103,9 @@ export const PasswordUpdateForm = () => {
             </button>
           </div>
 
-          <Show when={validationIssue()?.oldPassword}>
+          <Show when={validationIssue()?.properties?.oldPassword}>
             <div class="flex flex-col ">
-              {validationIssue()?.oldPassword?._errors?.map((err) => (
+              {validationIssue()?.properties?.oldPassword?.errors?.map((err) => (
                 <p class="mt-2 bg-red-500 text-white rounded-md px-3 py-2">
                   {err}
                 </p>
@@ -123,7 +123,7 @@ export const PasswordUpdateForm = () => {
               id="newPassword"
               required
               class={`${
-                validationIssue()?.newPassword
+                validationIssue()?.properties?.newPassword
                   ? "border-red-600"
                   : "border-slate-600"
               }  px-3 w-full  py-2 rounded-md border-2`}
@@ -150,9 +150,9 @@ export const PasswordUpdateForm = () => {
             </button>
           </div>
 
-          <Show when={validationIssue()?.newPassword}>
+          <Show when={validationIssue()?.properties?.newPassword}>
             <div class="flex flex-col ">
-              {validationIssue()?.newPassword?._errors?.map((err) => (
+              {validationIssue()?.properties?.newPassword?.errors?.map((err) => (
                 <p class="mt-2 bg-red-500 text-white rounded-md px-3 py-2">
                   {err}
                 </p>

@@ -11,6 +11,7 @@ import { getUserByEmail } from "../../../features/auth/services/user";
 import { LoginSchema } from "../../../features/auth/validations/login";
 import { SlidingWindowRateLimiter } from "../../../features/ratelimit/services";
 import { aesEncrypt, EncryptionPurpose } from "../../../lib/aes";
+import { z } from "zod/v4";
 
 export async function POST({ clientAddress, request, cookies }: APIContext) {
   try {
@@ -59,7 +60,7 @@ export async function POST({ clientAddress, request, cookies }: APIContext) {
       return Response.json(
         {
           error: "validation_error",
-          message: parsedData.error.format(),
+          message: z.treeifyError(parsedData.error),
         },
         { status: 400 }
       );

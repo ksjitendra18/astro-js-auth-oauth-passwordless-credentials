@@ -1,5 +1,5 @@
 import type { APIContext } from "astro";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { EmailSchema } from "../../../../features/auth/validations/email";
 import { getSessionInfo } from "../../../../features/auth/services/session";
 import { getUserByEmail } from "../../../../features/auth/services/user";
@@ -47,7 +47,7 @@ export async function POST({
       return Response.json(
         {
           error: "validation_error",
-          message: parsedData.error.format(),
+          message: z.treeifyError(parsedData.error),
         },
         { status: 400 }
       );

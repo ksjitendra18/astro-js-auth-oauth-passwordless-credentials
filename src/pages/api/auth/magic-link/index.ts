@@ -3,6 +3,7 @@ import { EmailSchema } from "../../../../features/auth/validations/email";
 import { sendMagicLink } from "../../../../features/email/templates/auth";
 import { AUTH_COOKIES } from "../../../../features/auth/constants";
 import { SlidingWindowRateLimiter } from "../../../../features/ratelimit/services";
+import { z } from "zod/v4";
 
 export async function POST({
   request,
@@ -55,7 +56,7 @@ export async function POST({
       return Response.json(
         {
           error: "validation_error",
-          message: parsedData.error.format(),
+          message: z.treeifyError(parsedData.error),
         },
         { status: 400 }
       );

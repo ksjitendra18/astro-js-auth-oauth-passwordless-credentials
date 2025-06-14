@@ -1,5 +1,5 @@
 import { Show, createSignal, type JSX } from "solid-js";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { EmailSchema, type EmailSchemaType } from "../validations/email";
 import Loader2 from "lucide-solid/icons/loader-2";
 
@@ -9,7 +9,7 @@ export const PasswordResetRequestForm = () => {
   const [loading, setLoading] = createSignal(false);
 
   const [validationIssue, setValidationIssue] =
-    createSignal<z.ZodFormattedError<EmailSchemaType, string> | null>(null);
+    createSignal<z.core.$ZodErrorTree<EmailSchemaType, string> | null>(null);
 
   const handleSubmit: JSX.EventHandlerUnion<
     HTMLFormElement,
@@ -28,7 +28,7 @@ export const PasswordResetRequestForm = () => {
       const safeParsedData = EmailSchema.safeParse(email);
 
       if (!safeParsedData.success) {
-        setValidationIssue(safeParsedData.error.format());
+        setValidationIssue(z.treeifyError(safeParsedData.error));
         return;
       }
 
@@ -80,7 +80,7 @@ export const PasswordResetRequestForm = () => {
         </form>
 
         <Show when={validationIssue()}>
-          {validationIssue()?._errors.map((err) => (
+          {validationIssue()?.errors.map((err) => (
             <>
               <div class="bg-red-500 text-white px-3 py-2 rounded-md my-3">
                 {err}

@@ -1,5 +1,5 @@
 import { Show, createSignal, type JSX } from "solid-js";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { SignupSchema, type SignupSchemaType } from "../validations/signup";
 import Loader2 from "lucide-solid/icons/loader-2";
 import Eye from "lucide-solid/icons/eye";
@@ -7,7 +7,7 @@ import EyeOff from "lucide-solid/icons/eye-off";
 
 export const SignupForm = () => {
   const [validationIssue, setValidationIssue] =
-    createSignal<z.ZodFormattedError<SignupSchemaType, string> | null>(null);
+    createSignal<z.core.$ZodErrorTree<SignupSchemaType, string> | null>(null);
 
   const [loading, setLoading] = createSignal(false);
   const [error, setError] = createSignal("");
@@ -33,7 +33,7 @@ export const SignupForm = () => {
       const safeParsedData = SignupSchema.safeParse({ name, email, password });
 
       if (!safeParsedData.success) {
-        setValidationIssue(safeParsedData.error.format());
+        setValidationIssue(z.treeifyError(safeParsedData.error));
         return;
       }
 
@@ -72,9 +72,9 @@ export const SignupForm = () => {
             class="border-slate-600 px-3 w-full py-2 rounded-md border-2"
           />
 
-          <Show when={validationIssue()?.name}>
+          <Show when={validationIssue()?.properties?.name}>
             <div class="flex flex-col gap-3">
-              {validationIssue()?.name?._errors?.map((err) => (
+              {validationIssue()?.properties?.name?.errors?.map((err) => (
                 <p class="my-5  bg-red-500 text-white rounded-md px-3 py-2">
                   {err}
                 </p>
@@ -94,13 +94,15 @@ export const SignupForm = () => {
             id="email"
             required
             class={`${
-              validationIssue()?.email ? "border-red-600" : "border-slate-600"
+              validationIssue()?.properties?.email
+                ? "border-red-600"
+                : "border-slate-600"
             } px-3 w-full  py-2 rounded-md border-2`}
           />
 
-          <Show when={validationIssue()?.email}>
+          <Show when={validationIssue()?.properties?.email}>
             <div class="flex flex-col gap-3">
-              {validationIssue()?.email?._errors?.map((err) => (
+              {validationIssue()?.properties?.email?.errors?.map((err) => (
                 <p class="my-5 bg-red-500  text-white rounded-md px-3 py-2">
                   {err}
                 </p>
@@ -118,7 +120,7 @@ export const SignupForm = () => {
               id="password"
               required
               class={`${
-                validationIssue()?.password
+                validationIssue()?.properties?.password
                   ? "border-red-600"
                   : "border-slate-600"
               }  px-3 w-full  py-2 rounded-md border-2`}
@@ -135,9 +137,9 @@ export const SignupForm = () => {
               )}
             </button>
           </div>
-          <Show when={validationIssue()?.password}>
+          <Show when={validationIssue()?.properties?.password}>
             <div class="flex flex-col ">
-              {validationIssue()?.password?._errors?.map((err) => (
+              {validationIssue()?.properties?.password?.errors?.map((err) => (
                 <p class="mt-2 bg-red-500 text-white rounded-md px-3 py-2">
                   {err}
                 </p>
