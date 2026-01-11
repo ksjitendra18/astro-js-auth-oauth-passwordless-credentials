@@ -9,7 +9,7 @@ import { z } from "zod";
 export async function POST({ request, url, clientAddress }: APIContext) {
   try {
     const rateLimiter = new FixedWindowRateLimiter(
-      "auth:password-reset",
+      "auth:password-reset-request",
       60 * 60,
       3
     );

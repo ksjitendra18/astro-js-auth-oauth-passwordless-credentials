@@ -1,8 +1,10 @@
 import type { APIContext } from "astro";
-import { deleteSessionById } from "../../../features/auth/services/session";
 import { AUTH_COOKIES } from "../../../features/auth/constants";
+import {
+  deleteSessionById,
+  deleteSessionFromCache,
+} from "../../../features/auth/services/session";
 import { aesDecrypt, EncryptionPurpose } from "../../../lib/aes";
-import redis from "../../../lib/redis";
 
 export async function GET({ cookies }: APIContext) {
   const encryptedSessionId = cookies.get(AUTH_COOKIES.SESSION_TOKEN)?.value;
@@ -22,7 +24,7 @@ export async function GET({ cookies }: APIContext) {
 
   await deleteSessionById(decryptedSessionId);
 
-  await redis.del(decryptedSessionId);
+  await deleteSessionFromCache(decryptedSessionId);
 
   cookies.delete(AUTH_COOKIES.SESSION_TOKEN, {
     path: "/",

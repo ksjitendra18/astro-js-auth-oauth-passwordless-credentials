@@ -3,6 +3,7 @@ import type { APIContext } from "astro";
 import { AUTH_COOKIES } from "../../../../features/auth/constants";
 import {
   deleteSessionByIdAndUserId,
+  deleteSessionFromCache,
   getSessionInfo,
 } from "../../../../features/auth/services/session";
 import { SlidingWindowRateLimiter } from "../../../../features/ratelimit/services";
@@ -65,6 +66,9 @@ export async function DELETE({ params, cookies, clientAddress }: APIContext) {
         }
       );
     }
+
+    await deleteSessionFromCache(sessionId);
+
     const result = await deleteSessionByIdAndUserId({
       sessionId,
       userId: sessionInfo.user.id,

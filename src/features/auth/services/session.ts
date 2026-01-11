@@ -8,14 +8,14 @@ type NewSessionArgs = {
   userId: string;
 };
 
-const expiresAt = new Date();
-expiresAt.setDate(expiresAt.getDate() + 14);
-
 export const createSession = async ({ userId }: NewSessionArgs) => {
   if (!userId) {
     throw new Error("User ID is required");
   }
   try {
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 14);
+
     const newSession = await db
       .insert(sessions)
       .values({
@@ -139,11 +139,13 @@ export const deleteSessionByUserId = async ({
 
 type ExtendSession = {
   sessionId: string;
+  userId?: string;
   expiresAt: number;
 };
 
 export const extendSession = async ({
   sessionId,
+  userId,
   expiresAt,
 }: ExtendSession) => {
   const currentTime = new Date().getTime();
@@ -158,7 +160,10 @@ export const extendSession = async ({
       await db
         .update(sessions)
         .set({ expiresAt: newExpiresAt })
-        .where(eq(sessions.id, sessionId));
+        .where(and(eq(sessions.id, sessionId), eq(sessions.userId, userId!)));
+
+      // Clear cached session so next fetch gets updated expiresAt
+      await redis.del(sessionId);
 
       return { sessionId, expiresAt: newExpiresAt };
     } catch (error) {
@@ -167,4 +172,8 @@ export const extendSession = async ({
   }
 
   return { sessionId, expiresAt };
+};
+
+export const deleteSessionFromCache = async (sessionId: string) => {
+  return await redis.del(sessionId);
 };
