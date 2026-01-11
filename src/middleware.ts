@@ -9,6 +9,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const sessionToken = context.cookies.get(AUTH_COOKIES.SESSION_TOKEN)?.value;
   const sessionInfo = await getSessionInfo(sessionToken);
 
+  console.log("sessionInfo", sessionInfo);
+
   if (sessionInfo && sessionInfo.user) {
     context.locals.userId = sessionInfo.user.id;
     // Extend session if it's about to expire
@@ -16,6 +18,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     await extendSession({
       sessionId: sessionInfo.id,
       expiresAt: sessionInfo.expiresAt,
+      userId: sessionInfo.user.id,
     });
   }
 

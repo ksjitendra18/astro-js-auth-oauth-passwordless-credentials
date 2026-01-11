@@ -6,39 +6,57 @@ import redis from "../../../../lib/redis";
 import { PasswordSchema } from "../../../../features/auth/validations/password";
 import * as z from "zod";
 import { sendPasswordResetConfirmationMail } from "../../../../features/email/templates/auth";
+import { FixedWindowRateLimiter } from "../../../../features/ratelimit/services";
 
 const RequestBodySchema = z.object({
   id: z.string(),
   password: PasswordSchema,
 });
 
-export async function POST({ request }: APIContext) {
-  const requestBody = await request.json();
-
-  const parsedData = RequestBodySchema.safeParse(requestBody);
-
-  if (!parsedData.success) {
-    return Response.json(
-      {
-        error: "validation_error",
-        message: z.treeifyError(parsedData.error),
-      },
-      { status: 400 }
-    );
-  }
-
-  const { id, password } = parsedData.data;
-  if (!id) {
-    return Response.json(
-      {
-        error: "id_error",
-        message: "Please pass a valid ID",
-      },
-      { status: 400 }
-    );
-  }
-
+export async function POST({ request, clientAddress }: APIContext) {
   try {
+    const rateLimiter = new FixedWindowRateLimiter(
+      "auth:password-reset",
+      60 * 60,
+      5
+    );
+
+    const ratelimitResponse = await rateLimiter.checkLimit(clientAddress);
+
+    if (!ratelimitResponse.allowed) {
+      return Response.json(
+        {
+          error: "rate_limit",
+          message: "Too many requests. Please try again later.",
+        },
+        { status: 429 }
+      );
+    }
+    const requestBody = await request.json();
+
+    const parsedData = RequestBodySchema.safeParse(requestBody);
+
+    if (!parsedData.success) {
+      return Response.json(
+        {
+          error: "validation_error",
+          message: z.treeifyError(parsedData.error),
+        },
+        { status: 400 }
+      );
+    }
+
+    const { id, password } = parsedData.data;
+    if (!id) {
+      return Response.json(
+        {
+          error: "id_error",
+          message: "Please pass a valid ID",
+        },
+        { status: 400 }
+      );
+    }
+
     const userEmail: string | null = await redis.get(id);
 
     if (!userEmail) {

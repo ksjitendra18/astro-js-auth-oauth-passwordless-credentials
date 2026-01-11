@@ -2,6 +2,7 @@ import { hash, verify } from "@node-rs/argon2";
 import { and, eq, ne } from "drizzle-orm";
 import { db } from "../../../db";
 import { passwords, sessions } from "../../../db/schema";
+import redis from "../../../lib/redis";
 
 const hashPassword = async (password: string) => {
   return await hash(password, {
@@ -53,6 +54,7 @@ interface UdpatePasswordAndDeleteSessionsParams {
   keepCurrentSession: boolean;
   currentSessionId?: string;
 }
+
 export const udpatePasswordAndDeleteSessions = async ({
   password,
   userId,
@@ -64,15 +66,23 @@ export const udpatePasswordAndDeleteSessions = async ({
       "currentSessionId is required when keepCurrentSession is true"
     );
   }
-  const hashedPassword = await hashPassword(password);
 
-  await db.transaction(async (trx) => {
-    try {
+  try {
+    const hashedPassword = await hashPassword(password);
+
+    // Fetch session IDs before deleting so we can clear them from cache
+    const userSessions = await db.query.sessions.findMany({
+      where: keepCurrentSession
+        ? and(ne(sessions.id, currentSessionId!), eq(sessions.userId, userId))
+        : eq(sessions.userId, userId),
+      columns: { id: true },
+    });
+    const sessionIdsToDelete = userSessions.map((s) => s.id);
+
+    await db.transaction(async (trx) => {
       await trx
         .update(passwords)
-        .set({
-          password: hashedPassword,
-        })
+        .set({ password: hashedPassword })
         .where(eq(passwords.userId, userId));
 
       if (keepCurrentSession) {
@@ -84,9 +94,13 @@ export const udpatePasswordAndDeleteSessions = async ({
       } else {
         await trx.delete(sessions).where(eq(sessions.userId, userId));
       }
-    } catch (error) {
-      console.log("Error while updating password ", error);
-      throw new Error("Error while updating password");
+    });
+
+    if (sessionIdsToDelete.length > 0) {
+      await redis.del(...sessionIdsToDelete);
     }
-  });
+  } catch (error) {
+    console.error("Error while updating password ", error);
+    throw new Error("Error while updating password");
+  }
 };
