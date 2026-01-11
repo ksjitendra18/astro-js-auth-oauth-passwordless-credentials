@@ -38,7 +38,7 @@ export async function POST({ request, clientAddress }: APIContext) {
       return Response.json(
         {
           error: "validation_error",
-          message: parsedData.error.format(),
+          message: z.treeifyError(parsedData.error),
         },
         { status: 400 }
       );

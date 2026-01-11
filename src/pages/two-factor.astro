@@ -1,5 +1,5 @@
 ---
-import { authenticator } from "otplib";
+import { generateSecret, generateURI } from "otplib";
 import qrcode from "qrcode";
 import { TwoFactorSetupForm } from "../features/auth/components/two-factor-setup-form";
 import { getUserById } from "../features/auth/services/user";
@@ -17,9 +17,16 @@ if (!userInfo) {
   return Astro.redirect("/login?redirect=/two-factor");
 }
 
-const secret = authenticator.generateSecret(20);
+const secret = generateSecret({
+  length: 20,
+});
 
-const otpAuthUrl = authenticator.keyuri(userInfo.email, "Astro Auth", secret);
+// const otpAuthUrl = authenticator.keyuri(userInfo.email, "Astro Auth", secret);
+const otpAuthUrl = generateURI({
+  secret,
+  issuer: "Astro Auth",
+  label: userInfo.email,
+});
 
 const imageUrl = await qrcode.toDataURL(otpAuthUrl);
 ---

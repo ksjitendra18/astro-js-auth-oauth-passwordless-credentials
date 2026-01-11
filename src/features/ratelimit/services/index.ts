@@ -3,6 +3,7 @@ import redis from "../../../lib/redis";
 
 interface RateLimitResult {
   allowed: boolean;
+  limit: number;
   current: number;
   remaining: number;
   resetTime: Date;
@@ -42,6 +43,7 @@ export class FixedWindowRateLimiter {
 
     return {
       allowed: requestCount <= this.maxRequests,
+      limit: this.maxRequests,
       current: requestCount,
       remaining: Math.max(0, this.maxRequests - requestCount),
       resetTime: new Date((currentWindow + 1) * this.windowSize * 1000),
@@ -91,6 +93,7 @@ export class SlidingWindowRateLimiter {
 
     return {
       allowed: requestCount <= this.maxRequests,
+      limit: this.maxRequests,
       current: requestCount,
       remaining: Math.max(0, this.maxRequests - requestCount),
       resetTime: new Date(now + this.windowSize * 1000),
@@ -176,6 +179,7 @@ export class TokenBucketRateLimiter {
 
       return {
         allowed: true,
+        limit: this.capacity,
         current: 0,
         remaining: this.capacity,
         resetTime: new Date(now + this.ttl * 1000),
@@ -200,6 +204,7 @@ export class TokenBucketRateLimiter {
 
     return {
       allowed: hasToken,
+      limit: this.capacity,
       current: this.capacity - remainingTokens,
       remaining: Math.floor(remainingTokens),
       resetTime: this.calculateResetTime(remainingTokens, now),

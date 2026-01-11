@@ -17,7 +17,7 @@ export const PasswordResetForm = ({ id }: { id: string }) => {
   const [showConfirmPassword, setShowConfirmPassword] = createSignal(false);
 
   const [validationIssue, setValidationIssue] =
-    createSignal<z.ZodFormattedError<PasswordSchemaType, string> | null>(null);
+    createSignal<z.core.$ZodErrorTree<PasswordSchemaType, string> | null>(null);
 
   const handleSubmit: JSX.EventHandlerUnion<
     HTMLFormElement,
@@ -45,7 +45,7 @@ export const PasswordResetForm = ({ id }: { id: string }) => {
       const parsedPassword = PasswordSchema.safeParse(newPassword);
 
       if (!parsedPassword.success) {
-        setValidationIssue(parsedPassword.error.format());
+        setValidationIssue(z.treeifyError(parsedPassword.error));
         return;
       }
 
@@ -95,7 +95,7 @@ export const PasswordResetForm = ({ id }: { id: string }) => {
               placeholder="Enter New Password"
               required
               class={`${
-                validationIssue()?._errors
+                validationIssue()?.errors
                   ? "border-red-600"
                   : "border-slate-600"
               }  px-3 w-full  py-2 rounded-md border-2`}
@@ -121,7 +121,7 @@ export const PasswordResetForm = ({ id }: { id: string }) => {
               placeholder="Confirm New Password"
               required
               class={`${
-                validationIssue()?._errors
+                validationIssue()?.errors
                   ? "border-red-600"
                   : "border-slate-600"
               }  px-3 w-full  py-2 rounded-md border-2`}
@@ -140,9 +140,9 @@ export const PasswordResetForm = ({ id }: { id: string }) => {
             </button>
           </div>
 
-          <Show when={validationIssue()?._errors}>
+          <Show when={validationIssue()?.errors}>
             <div class="flex flex-col">
-              {validationIssue()?._errors?.map((err) => (
+              {validationIssue()?.errors?.map((err) => (
                 <p class="my-5 bg-red-500  text-white rounded-md px-3 py-2">
                   {err}
                 </p>

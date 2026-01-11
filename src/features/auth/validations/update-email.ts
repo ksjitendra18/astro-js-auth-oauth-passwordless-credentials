@@ -1,19 +1,15 @@
-import { object, string, z } from "zod";
+import { email, object, string, z } from "zod";
 
 export const UpdateEmailSchema = object({
-  currentEmail: string({ required_error: "Current Email is required" }).email({
-    message: "Enter a valid email",
-  }),
+  currentEmail: email({ error: "Current Email is required" }),
 
   currentEmailOtp: string({
-    required_error: "Current email OTP is required",
+    error: "Current email OTP is required",
   }).min(6, "OTP should be of 6 digits"),
 
-  newEmail: string({ required_error: "New Email is required" }).email({
-    message: "Enter a valid email",
-  }),
+  newEmail: email({ error: "New Email is required" }),
 
-  newEmailOtp: string({ required_error: "New email OTP is required" }).min(
+  newEmailOtp: string({ error: "New email OTP is required" }).min(
     6,
     "OTP should be of 6 digits"
   ),

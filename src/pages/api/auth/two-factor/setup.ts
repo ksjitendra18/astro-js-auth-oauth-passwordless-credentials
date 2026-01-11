@@ -11,10 +11,10 @@ import { aesEncrypt, EncryptionPurpose } from "../../../../lib/aes";
 
 const RequestBodySchema = z.object({
   secretCode: z
-    .string({ required_error: "Secret code is required" })
+    .string({ error: "Secret code is required" })
     .min(32, "Secret code should be equal to 32 characters")
     .max(32, "Secret code should be equal to 32 characters"),
-  enteredCode: z.string({ required_error: "Entered code is required" }),
+  enteredCode: z.string({ error: "Entered code is required" }),
 });
 
 export async function POST({ request, cookies, url }: APIContext) {
@@ -27,7 +27,7 @@ export async function POST({ request, cookies, url }: APIContext) {
       return Response.json(
         {
           error: "validation_error",
-          message: parsedData.error.format(),
+          message: z.treeifyError(parsedData.error),
         },
         { status: 400 }
       );
@@ -46,7 +46,7 @@ export async function POST({ request, cookies, url }: APIContext) {
       );
     }
 
-    const isTokenValid = validateTotpCode({
+    const isTokenValid = await validateTotpCode({
       enteredCode: parsedData.data.enteredCode,
       secret: parsedData.data.secretCode,
       isSecretCodeEncrypted: false,

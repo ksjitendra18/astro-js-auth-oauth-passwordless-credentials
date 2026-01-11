@@ -4,6 +4,7 @@ import { getSessionInfo } from "../../../../features/auth/services/session";
 import { EmailSchema } from "../../../../features/auth/validations/email";
 import { sendAccountDeletionRequestMail } from "../../../../features/email/templates/auth";
 import { SlidingWindowRateLimiter } from "../../../../features/ratelimit/services";
+import { z } from "zod";
 
 export async function POST({ request, clientAddress, cookies }: APIContext) {
   try {
@@ -46,7 +47,7 @@ export async function POST({ request, clientAddress, cookies }: APIContext) {
       return Response.json(
         {
           error: "validation_error",
-          message: parsedData.error.format(),
+          message: z.treeifyError(parsedData.error),
         },
         { status: 400 }
       );

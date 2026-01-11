@@ -1,12 +1,12 @@
 import { eq } from "drizzle-orm";
+import { verify } from "otplib";
 import { db } from "../../../db";
 import { users } from "../../../db/schema";
+import { aesDecrypt, EncryptionPurpose } from "../../../lib/aes";
 import { generateRandomToken } from "../../../lib/random-string";
 import redis from "../../../lib/redis";
 import { createRecoveryCodes, deleteRecoveryCodes } from "./recovery-codes";
 import { deleteSessionByUserId } from "./session";
-import { authenticator } from "otplib";
-import { aesDecrypt, EncryptionPurpose } from "../../../lib/aes";
 
 export const create2FASession = async (userId: string) => {
   const id = generateRandomToken();
@@ -68,7 +68,7 @@ export const disableTwoFactor = async ({ userId }: { userId: string }) => {
   });
 };
 
-export const validateTotpCode = ({
+export const validateTotpCode= async ({
   enteredCode,
   secret,
   isSecretCodeEncrypted = true,
@@ -81,10 +81,10 @@ export const validateTotpCode = ({
   if (isSecretCodeEncrypted) {
     secretCode = aesDecrypt(secret, EncryptionPurpose.TWO_FA_SECRET);
   }
-  const isValidToken = authenticator.verify({
+  const isValidToken = await verify({
     token: enteredCode,
     secret: secretCode,
   });
 
-  return isValidToken;
+  return isValidToken.valid;
 };

@@ -13,7 +13,7 @@ export const MagicLinkForm = ({
   const [emailSent, setEmailSent] = createSignal(!!verificationId);
 
   const [validationIssue, setValidationIssue] =
-    createSignal<z.ZodFormattedError<EmailSchemaType, string> | null>(null);
+    createSignal<z.core.$ZodErrorTree<EmailSchemaType, string> | null>(null);
 
   const handleSendEmail: JSX.EventHandlerUnion<
     HTMLFormElement,
@@ -31,7 +31,7 @@ export const MagicLinkForm = ({
       const safeParsedData = EmailSchema.safeParse(email);
 
       if (!safeParsedData.success) {
-        setValidationIssue(safeParsedData.error.format());
+        setValidationIssue(z.treeifyError(safeParsedData.error));
         return;
       }
 
@@ -126,7 +126,7 @@ export const MagicLinkForm = ({
           </form>
 
           <Show when={validationIssue()}>
-            {validationIssue()?._errors.map((err) => (
+            {validationIssue()?.errors.map((err) => (
               <>
                 <div class="bg-red-500 text-white px-3 py-2 rounded-md my-3">
                   {err}
@@ -173,7 +173,7 @@ export const MagicLinkForm = ({
           </form>
 
           <Show when={validationIssue()}>
-            {validationIssue()?._errors.map((err) => (
+            {validationIssue()?.errors.map((err) => (
               <>
                 <div class="bg-red-500 text-white px-3 py-2 rounded-md my-3">
                   {err}

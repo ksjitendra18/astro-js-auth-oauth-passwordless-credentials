@@ -71,7 +71,7 @@ export async function POST({
       return Response.json(
         {
           error: "validation_error",
-          message: parsedData.error.format(),
+          message: z.treeifyError(parsedData.error),
         },
         { status: 400 }
       );
@@ -79,7 +79,7 @@ export async function POST({
 
     let verificationResult = false;
     if (parsedData.data.verificationType === "totp") {
-      verificationResult = validateTotpCode({
+      verificationResult = await validateTotpCode({
         enteredCode: parsedData.data.enteredCode,
         secret: userInfo.twoFactorSecret!,
       });

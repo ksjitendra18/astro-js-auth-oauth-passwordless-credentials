@@ -1,5 +1,8 @@
 import type { APIContext } from "astro";
-import { allLoginProvidersEnum, AUTH_COOKIES } from "../../../../features/auth/constants";
+import {
+  allLoginProvidersEnum,
+  AUTH_COOKIES,
+} from "../../../../features/auth/constants";
 import { createLoginLog } from "../../../../features/auth/services/logs";
 import { createSession } from "../../../../features/auth/services/session";
 import { validateTotpCode } from "../../../../features/auth/services/two-factor";
@@ -20,7 +23,9 @@ export async function POST({ request, clientAddress, cookies }: APIContext) {
           error: "rate_limit",
           message: "Too many requests. Please try again later.",
         },
-        { status: 429 }
+        {
+          status: 429,
+        }
       );
     }
 
@@ -80,7 +85,7 @@ export async function POST({ request, clientAddress, cookies }: APIContext) {
       );
     }
 
-    const isTokenValid = validateTotpCode({
+    const isTokenValid = await validateTotpCode({
       enteredCode,
       secret: userInfo.twoFactorSecret!,
     });

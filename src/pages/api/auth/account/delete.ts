@@ -10,7 +10,7 @@ import { SlidingWindowRateLimiter } from "../../../../features/ratelimit/service
 import redis from "../../../../lib/redis";
 
 const RequestBodySchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
   enteredCode: z.string(),
 });
 
@@ -67,7 +67,7 @@ export async function POST({ request, clientAddress, cookies }: APIContext) {
       return Response.json(
         {
           error: "validation_error",
-          message: parsedData.error.format(),
+          message: z.treeifyError(parsedData.error),
         },
         { status: 400 }
       );

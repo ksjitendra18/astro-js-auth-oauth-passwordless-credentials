@@ -6,8 +6,8 @@ import { AUTH_COOKIES } from "../../features/auth/constants";
 
 const RequestBodySchema = zod.object({
   fullName: zod
-    .string({ required_error: "Full name is required" })
-    .min(2, { message: "Full name should be atleast 2 characters" }),
+    .string({ error: "Full name is required" })
+    .min(2, { error: "Full name should be atleast 2 characters" }),
 });
 
 export async function POST({ request, cookies }: APIContext) {

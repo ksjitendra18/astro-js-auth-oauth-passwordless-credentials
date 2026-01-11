@@ -1,7 +1,7 @@
 import { Show, createSignal, type JSX } from "solid-js";
-import { z } from "zod";
 import { EmailVerificationSchema } from "../validations/email-verification";
 import Loader2 from "lucide-solid/icons/loader-2";
+import z from "zod";
 
 export const EmailVerificationForm = ({ id }: { id: string }) => {
   const [verificationErr, setVerificationErr] = createSignal("");
@@ -9,7 +9,7 @@ export const EmailVerificationForm = ({ id }: { id: string }) => {
   const [loading, setLoading] = createSignal(false);
 
   const [validationIssue, setValidationIssue] =
-    createSignal<z.ZodFormattedError<
+    createSignal<z.core.$ZodErrorTree<
       z.infer<typeof EmailVerificationSchema>,
       string
     > | null>(null);
@@ -32,7 +32,7 @@ export const EmailVerificationForm = ({ id }: { id: string }) => {
       });
 
       if (!safeParsedData.success) {
-        setValidationIssue(safeParsedData.error.format());
+        setValidationIssue(z.treeifyError(safeParsedData.error));
         return;
       }
       const res = await fetch("/api/auth/email/verify", {
@@ -97,7 +97,7 @@ export const EmailVerificationForm = ({ id }: { id: string }) => {
         </div>
 
         <Show when={validationIssue()}>
-          {validationIssue()?._errors.map((err) => (
+          {validationIssue()?.errors.map((err) => (
             <>
               <div class="bg-red-500 text-white px-3 py-2 rounded-md my-3">
                 {err}
