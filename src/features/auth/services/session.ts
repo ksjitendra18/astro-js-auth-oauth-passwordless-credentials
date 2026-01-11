@@ -26,6 +26,7 @@ export const createSession = async ({ userId }: NewSessionArgs) => {
 
     return { sessionId: newSession[0].id, expiresAt };
   } catch (error) {
+    console.error("Error in createSession:", error);
     throw new Error("Failed to create session");
   }
 };

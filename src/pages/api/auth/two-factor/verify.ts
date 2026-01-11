@@ -23,7 +23,9 @@ export async function POST({ request, clientAddress, cookies }: APIContext) {
           error: "rate_limit",
           message: "Too many requests. Please try again later.",
         },
-        { status: 429 }
+        {
+          status: 429,
+        }
       );
     }
 
