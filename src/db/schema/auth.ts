@@ -121,6 +121,16 @@ export const sessions = sqliteTable(
     createdAt: integer({ mode: "timestamp" })
       .default(sql`(unixepoch())`)
       .notNull(),
+
+    timestamp1: integer("timestamp1", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    timestamp2: integer("timestamp2", { mode: "timestamp_ms" })
+      .notNull()
+      .default(sql`(unixepoch() * 1000)`),
+    timestamp3: integer("timestamp3", { mode: "number" })
+      .notNull()
+      .default(sql`(unixepoch())`),
   },
   (table) => [index("session_user_id_idx").on(table.userId)]
 );

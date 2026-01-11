@@ -46,7 +46,7 @@ export async function POST({ request, cookies, url }: APIContext) {
       );
     }
 
-    const isTokenValid = validateTotpCode({
+    const isTokenValid = await validateTotpCode({
       enteredCode: parsedData.data.enteredCode,
       secret: parsedData.data.secretCode,
       isSecretCodeEncrypted: false,
