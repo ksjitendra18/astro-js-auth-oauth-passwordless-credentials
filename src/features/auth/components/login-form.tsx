@@ -1,5 +1,5 @@
 import { Show, createSignal, type JSX } from "solid-js";
-import { z } from "zod/v4";
+import { z } from "zod";
 import { LoginSchema, type LoginSchemaType } from "../validations/login";
 
 import Loader2 from "lucide-solid/icons/loader-2";

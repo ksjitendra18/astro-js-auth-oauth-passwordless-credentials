@@ -8,7 +8,7 @@ import {
 import { SignupSchema } from "../../../features/auth/validations/signup";
 import { sendVerificationMail } from "../../../features/email/templates/auth";
 import { TokenBucketRateLimiter } from "../../../features/ratelimit/services";
-import { z } from "zod/v4";
+import { z } from "zod";
 
 export async function POST({ request, clientAddress }: APIContext) {
   try {

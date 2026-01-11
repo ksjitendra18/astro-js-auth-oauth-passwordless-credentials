@@ -1,7 +1,7 @@
 import { Show, createSignal, type JSX } from "solid-js";
 import { EmailVerificationSchema } from "../validations/email-verification";
 import Loader2 from "lucide-solid/icons/loader-2";
-import z from "zod/v4";
+import z from "zod";
 
 export const EmailVerificationForm = ({ id }: { id: string }) => {
   const [verificationErr, setVerificationErr] = createSignal("");

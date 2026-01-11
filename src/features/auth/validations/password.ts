@@ -1,4 +1,4 @@
-import { string, z } from "zod/v4";
+import { string, z } from "zod";
 
 export const PasswordSchema = string({ error: "Password is required" })
   .min(8, "Password should be more than 8 characters")

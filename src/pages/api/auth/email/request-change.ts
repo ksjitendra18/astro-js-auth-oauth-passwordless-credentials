@@ -1,5 +1,5 @@
 import type { APIContext } from "astro";
-import { z } from "zod/v4";
+import { z } from "zod";
 import { EmailSchema } from "../../../../features/auth/validations/email";
 import { getSessionInfo } from "../../../../features/auth/services/session";
 import { getUserByEmail } from "../../../../features/auth/services/user";

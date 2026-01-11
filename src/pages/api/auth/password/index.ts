@@ -7,7 +7,7 @@ import {
 import { getSessionInfo } from "../../../../features/auth/services/session";
 import { UpdatePasswordSchema } from "../../../../features/auth/validations/update-password";
 import { AUTH_COOKIES } from "../../../../features/auth/constants";
-import { z } from "zod/v4";
+import { z } from "zod";
 
 export async function PUT({ request, cookies }: APIContext) {
   try {

@@ -11,7 +11,7 @@ import { getUserByEmail } from "../../../features/auth/services/user";
 import { LoginSchema } from "../../../features/auth/validations/login";
 import { SlidingWindowRateLimiter } from "../../../features/ratelimit/services";
 import { aesEncrypt, EncryptionPurpose } from "../../../lib/aes";
-import { z } from "zod/v4";
+import { z } from "zod";
 
 export async function POST({ clientAddress, request, cookies }: APIContext) {
   try {

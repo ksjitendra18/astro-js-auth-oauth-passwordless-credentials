@@ -1,4 +1,4 @@
-import { email, z } from "zod/v4";
+import { email, z } from "zod";
 
 export const EmailSchema = email({ error: "Email is required" }).trim();
 

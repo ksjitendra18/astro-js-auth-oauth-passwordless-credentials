@@ -1,5 +1,5 @@
 import { createSignal, Show, type JSX } from "solid-js";
-import * as z from "zod/v4";
+import * as z from "zod";
 import {
   UpdatePasswordSchema,
   type UpdatePasswordSchemaType,
@@ -105,11 +105,13 @@ export const PasswordUpdateForm = () => {
 
           <Show when={validationIssue()?.properties?.oldPassword}>
             <div class="flex flex-col ">
-              {validationIssue()?.properties?.oldPassword?.errors?.map((err) => (
-                <p class="mt-2 bg-red-500 text-white rounded-md px-3 py-2">
-                  {err}
-                </p>
-              ))}
+              {validationIssue()?.properties?.oldPassword?.errors?.map(
+                (err) => (
+                  <p class="mt-2 bg-red-500 text-white rounded-md px-3 py-2">
+                    {err}
+                  </p>
+                )
+              )}
             </div>
           </Show>
 
@@ -152,11 +154,13 @@ export const PasswordUpdateForm = () => {
 
           <Show when={validationIssue()?.properties?.newPassword}>
             <div class="flex flex-col ">
-              {validationIssue()?.properties?.newPassword?.errors?.map((err) => (
-                <p class="mt-2 bg-red-500 text-white rounded-md px-3 py-2">
-                  {err}
-                </p>
-              ))}
+              {validationIssue()?.properties?.newPassword?.errors?.map(
+                (err) => (
+                  <p class="mt-2 bg-red-500 text-white rounded-md px-3 py-2">
+                    {err}
+                  </p>
+                )
+              )}
             </div>
           </Show>
 

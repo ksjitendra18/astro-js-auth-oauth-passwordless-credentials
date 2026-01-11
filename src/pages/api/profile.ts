@@ -1,7 +1,7 @@
 import type { APIContext } from "astro";
 import { getSessionInfo } from "../../features/auth/services/session";
 import { updateUserProfile } from "../../features/auth/services/user";
-import * as zod from "zod/v4";
+import * as zod from "zod";
 import { AUTH_COOKIES } from "../../features/auth/constants";
 
 const RequestBodySchema = zod.object({

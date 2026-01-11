@@ -1,4 +1,4 @@
-import { object, string, z } from "zod/v4";
+import { object, string, z } from "zod";
 
 export const UpdatePasswordSchema = object({
   oldPassword: string({ error: "Old Password is required" })

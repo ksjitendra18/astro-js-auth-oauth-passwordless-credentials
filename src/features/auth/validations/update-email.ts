@@ -1,4 +1,4 @@
-import { email, object, string, z } from "zod/v4";
+import { email, object, string, z } from "zod";
 
 export const UpdateEmailSchema = object({
   currentEmail: email({ error: "Current Email is required" }),

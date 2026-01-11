@@ -1,5 +1,5 @@
 import type { APIContext } from "astro";
-import * as z from "zod/v4";
+import * as z from "zod";
 import { AUTH_COOKIES } from "../../../../features/auth/constants";
 import { getSessionInfo } from "../../../../features/auth/services/session";
 import {

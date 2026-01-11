@@ -4,7 +4,7 @@ import { getUserByEmail } from "../../../../features/auth/services/user";
 import { getUserPassword } from "../../../../features/auth/services/password";
 import { sendPasswordResetMail } from "../../../../features/email/templates/auth";
 import { FixedWindowRateLimiter } from "../../../../features/ratelimit/services";
-import { z } from "zod/v4";
+import { z } from "zod";
 
 export async function POST({ request, url, clientAddress }: APIContext) {
   try {
