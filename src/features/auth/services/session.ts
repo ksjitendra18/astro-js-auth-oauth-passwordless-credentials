@@ -139,7 +139,7 @@ export const deleteSessionByUserId = async ({
 
 type ExtendSession = {
   sessionId: string;
-  userId?: string;
+  userId: string;
   expiresAt: number;
 };
 
@@ -160,7 +160,7 @@ export const extendSession = async ({
       await db
         .update(sessions)
         .set({ expiresAt: newExpiresAt })
-        .where(and(eq(sessions.id, sessionId), eq(sessions.userId, userId!)));
+        .where(and(eq(sessions.id, sessionId), eq(sessions.userId, userId)));
 
       // Clear cached session so next fetch gets updated expiresAt
       await redis.del(sessionId);

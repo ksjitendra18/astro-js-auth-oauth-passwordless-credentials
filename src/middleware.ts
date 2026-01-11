@@ -18,6 +18,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     await extendSession({
       sessionId: sessionInfo.id,
       expiresAt: sessionInfo.expiresAt,
+      userId: sessionInfo.user.id,
     });
   }
 
