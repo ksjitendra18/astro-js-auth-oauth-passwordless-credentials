@@ -6,7 +6,7 @@ import {
 } from "../../../features/auth/services/session";
 import { aesDecrypt, EncryptionPurpose } from "../../../lib/aes";
 
-export async function GET({ cookies }: APIContext) {
+export async function POST({ cookies }: APIContext) {
   const encryptedSessionId = cookies.get(AUTH_COOKIES.SESSION_TOKEN)?.value;
   if (!encryptedSessionId) {
     return new Response(null, {
@@ -19,7 +19,7 @@ export async function GET({ cookies }: APIContext) {
 
   const decryptedSessionId = aesDecrypt(
     encryptedSessionId,
-    EncryptionPurpose.SESSION_COOKIE_SECRET
+    EncryptionPurpose.SESSION_COOKIE_SECRET,
   );
 
   await deleteSessionById(decryptedSessionId);

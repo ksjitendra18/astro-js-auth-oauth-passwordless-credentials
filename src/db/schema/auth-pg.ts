@@ -7,11 +7,12 @@ import {
   index,
   integer,
   pgEnum,
+  uuid,
 } from "drizzle-orm/pg-core";
 import { v7 as uuidv7 } from "uuid";
 
 export const users = pgTable("users", {
-  id: text()
+  id: uuid()
     .$default(() => uuidv7())
     .primaryKey(),
   fullName: text(),
@@ -42,7 +43,7 @@ export const usersRelations = relations(users, ({ many, one }) => ({
 export const passwords = pgTable(
   "passwords",
   {
-    id: text()
+    id: uuid()
       .$default(() => uuidv7())
       .primaryKey(),
 
@@ -60,7 +61,7 @@ export const passwords = pgTable(
       .$onUpdateFn(() => new Date())
       .notNull(),
   },
-  (table) => [index("passwords_user_id_idx").on(table.userId)]
+  (table) => [index("passwords_user_id_idx").on(table.userId)],
 );
 
 export const passwordRelations = relations(passwords, ({ one }) => ({
@@ -78,7 +79,7 @@ export const oauthProvidersEnum = pgEnum("oauth_providers_enum", [
 export const oauthProviders = pgTable(
   "oauth_providers",
   {
-    id: text()
+    id: uuid()
       .$default(() => uuidv7())
       .primaryKey(),
     providerUserId: text().notNull(),
@@ -96,9 +97,9 @@ export const oauthProviders = pgTable(
     index("oauth_providers_user_id_idx").on(table.userId),
     index("oauth_providers_provider_user_id_strategy_idx").on(
       table.providerUserId,
-      table.strategy
+      table.strategy,
     ),
-  ]
+  ],
 );
 
 export const oauthProviderRelations = relations(oauthProviders, ({ one }) => ({
@@ -111,7 +112,7 @@ export const oauthProviderRelations = relations(oauthProviders, ({ one }) => ({
 export const sessions = pgTable(
   "sessions",
   {
-    id: text()
+    id: uuid()
       .$default(() => uuidv7())
       .primaryKey(),
     userId: text()
@@ -123,7 +124,7 @@ export const sessions = pgTable(
     expiresAt: integer().notNull(),
     createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => [index("session_user_id_idx").on(table.userId)]
+  (table) => [index("session_user_id_idx").on(table.userId)],
 );
 
 export const sessionRelations = relations(sessions, ({ one }) => ({
@@ -144,7 +145,7 @@ export const allLoginProvidersEnum = pgEnum("all_login_providers_enum", [
 export const loginLogs = pgTable(
   "login_logs",
   {
-    id: text()
+    id: uuid()
       .$default(() => uuidv7())
       .primaryKey(),
 
@@ -170,7 +171,7 @@ export const loginLogs = pgTable(
     ip: text().notNull(),
     createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => [index("login_logs_user_id_idx").on(table.userId)]
+  (table) => [index("login_logs_user_id_idx").on(table.userId)],
 );
 
 export const loginLogsRelations = relations(loginLogs, ({ one }) => ({
@@ -187,7 +188,7 @@ export const loginLogsRelations = relations(loginLogs, ({ one }) => ({
 export const recoveryCodes = pgTable(
   "recovery_codes",
   {
-    id: text()
+    id: uuid()
       .$defaultFn(() => uuidv7())
       .primaryKey(),
     userId: text()
@@ -204,7 +205,7 @@ export const recoveryCodes = pgTable(
       .$onUpdateFn(() => new Date())
       .notNull(),
   },
-  (table) => [index("recovery_codes_user_id_idx").on(table.userId)]
+  (table) => [index("recovery_codes_user_id_idx").on(table.userId)],
 );
 
 export const recoveryCodesRelations = relations(recoveryCodes, ({ one }) => ({

@@ -1,5 +1,10 @@
 # Changelog
 
+## 8th March 2026
+
+Updated packages
+Change in logout endpoint from get to POST
+
 ## 22th April 2025
 
 Added schema for `PostgreSQL` and `MySQL`
@@ -37,7 +42,7 @@ Schema Changes: changed isBlocked to isBanned
 
 ### Changes
 
-Sessions IDs are now encrypted using AES-256-GCM. Also sessions are cached in redis. 
+Sessions IDs are now encrypted using AES-256-GCM. Also sessions are cached in redis.
 
 ## 26th December 2024
 
@@ -63,20 +68,21 @@ Major changes in terms of database schema, folder structure and code structure.
 ### Changes
 
 #### Oauth
+
 - Removed oauth_tokens table
 - New Table: oauth_providers
 - Removed offline mode for google oauth
 
 #### Sessions
+
 - login_logs table now has a column for strategy
 - Account page will show what strategy was used to login
 
 #### Passwords
 
 - Passwords now have a column for when it was created and updated
-  
 
 ### Misc Changes
 
 - Select only required columns in queries
-- Export validation schema type from validation files 
+- Export validation schema type from validation files

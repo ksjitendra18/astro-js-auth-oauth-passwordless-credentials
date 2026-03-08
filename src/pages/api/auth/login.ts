@@ -12,6 +12,7 @@ import { LoginSchema } from "../../../features/auth/validations/login";
 import { SlidingWindowRateLimiter } from "../../../features/ratelimit/services";
 import { aesEncrypt, EncryptionPurpose } from "../../../lib/aes";
 import { z } from "zod";
+import { normalizeEmail } from "../../../features/auth/utils";
 
 export async function POST({ clientAddress, request, cookies }: APIContext) {
   try {
@@ -39,7 +40,8 @@ export async function POST({ clientAddress, request, cookies }: APIContext) {
       10 * 60,
       10
     );
-    const accountRatelimitResponse = await accountRateLimiter.checkLimit(email);
+
+    const accountRatelimitResponse = await accountRateLimiter.checkLimit(normalizeEmail(email));
 
     if (!accountRatelimitResponse.allowed) {
       return Response.json(
