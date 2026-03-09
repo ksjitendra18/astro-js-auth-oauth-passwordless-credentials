@@ -20,14 +20,13 @@ export async function POST({
 }: APIContext) {
   try {
     const requestLimiter = new FixedWindowRateLimiter(
-      "auth:verify-email-request",
+      "auth:verify-email-change",
       60 * 60,
-      4
+      4,
     );
 
-    const requestLimiterResponse = await requestLimiter.checkLimit(
-      clientAddress
-    );
+    const requestLimiterResponse =
+      await requestLimiter.checkLimit(clientAddress);
 
     if (!requestLimiterResponse.allowed) {
       return Response.json(
@@ -35,7 +34,7 @@ export async function POST({
           error: "rate_limit",
           message: "Too many requests. Please try again later.",
         },
-        { status: 429 }
+        { status: 429 },
       );
     }
 
@@ -49,7 +48,7 @@ export async function POST({
           error: "validation_error",
           message: z.treeifyError(parsedData.error),
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -62,7 +61,7 @@ export async function POST({
         { error: "authentication_error", message: "Log in" },
         {
           status: 401,
-        }
+        },
       );
     }
 
@@ -76,7 +75,7 @@ export async function POST({
             error: "validation_error",
             message: "Enter a valid email",
           },
-          { status: 400 }
+          { status: 400 },
         );
       }
     } else if (parsedData.data.type === "newEmail") {
@@ -86,7 +85,7 @@ export async function POST({
             error: "validation_error",
             message: "New email cannot be the same as the current email",
           },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -100,7 +99,7 @@ export async function POST({
             error: "validation_error",
             message: "Email already used. Please use a different email",
           },
-          { status: 400 }
+          { status: 400 },
         );
       }
     }
@@ -130,13 +129,13 @@ export async function POST({
         message:
           "Email sent successfully. Please check your inbox and spam folder",
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("Error while requesting email change", error);
     return Response.json(
       { error: "server_error", message: "Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

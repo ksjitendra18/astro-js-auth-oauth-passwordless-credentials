@@ -18,7 +18,7 @@ export async function POST({ request, clientAddress }: APIContext) {
     const rateLimiter = new FixedWindowRateLimiter(
       "auth:password-reset",
       60 * 60,
-      5
+      5,
     );
 
     const ratelimitResponse = await rateLimiter.checkLimit(clientAddress);
@@ -29,7 +29,7 @@ export async function POST({ request, clientAddress }: APIContext) {
           error: "rate_limit",
           message: "Too many requests. Please try again later.",
         },
-        { status: 429 }
+        { status: 429 },
       );
     }
     const requestBody = await request.json();
@@ -42,7 +42,7 @@ export async function POST({ request, clientAddress }: APIContext) {
           error: "validation_error",
           message: z.treeifyError(parsedData.error),
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -53,7 +53,7 @@ export async function POST({ request, clientAddress }: APIContext) {
           error: "id_error",
           message: "Please pass a valid ID",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -65,7 +65,7 @@ export async function POST({ request, clientAddress }: APIContext) {
           error: "token_error",
           message: "Token expired. Please regenerate",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -77,7 +77,7 @@ export async function POST({ request, clientAddress }: APIContext) {
           error: "token_error",
           message: "Token expired. Please regenerate",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -91,12 +91,14 @@ export async function POST({ request, clientAddress }: APIContext) {
       email: userInfo.email,
     });
 
+    await redis.del(id);
+
     return Response.json({ success: true }, { status: 200 });
   } catch (err) {
     console.log("Error while resetting password", err);
     return Response.json(
       { error: "server_error", message: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

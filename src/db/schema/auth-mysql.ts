@@ -57,7 +57,7 @@ export const passwords = mysqlTable(
     createdAt: timestamp().defaultNow().notNull(),
     updatedAt: timestamp().defaultNow().onUpdateNow().notNull(),
   },
-  (table) => [index("passwords_user_id_idx").on(table.userId)]
+  (table) => [index("passwords_user_id_idx").on(table.userId)],
 );
 
 export const passwordRelations = relations(passwords, ({ one }) => ({
@@ -88,9 +88,9 @@ export const oauthProviders = mysqlTable(
     index("oauth_providers_user_id_idx").on(table.userId),
     index("oauth_providers_provider_user_id_strategy_idx").on(
       table.providerUserId,
-      table.strategy
+      table.strategy,
     ),
-  ]
+  ],
 );
 
 export const oauthProviderRelations = relations(oauthProviders, ({ one }) => ({
@@ -115,7 +115,7 @@ export const sessions = mysqlTable(
     expiresAt: int().notNull(),
     createdAt: timestamp().defaultNow().notNull(),
   },
-  (table) => [index("session_user_id_idx").on(table.userId)]
+  (table) => [index("session_user_id_idx").on(table.userId)],
 );
 
 export const sessionRelations = relations(sessions, ({ one }) => ({
@@ -157,7 +157,7 @@ export const loginLogs = mysqlTable(
     ip: text().notNull(),
     createdAt: timestamp().defaultNow().notNull(),
   },
-  (table) => [index("login_logs_user_id_idx").on(table.userId)]
+  (table) => [index("login_logs_user_id_idx").on(table.userId)],
 );
 
 export const loginLogsRelations = relations(loginLogs, ({ one }) => ({
@@ -188,7 +188,7 @@ export const recoveryCodes = mysqlTable(
     createdAt: timestamp().defaultNow().notNull(),
     updatedAt: timestamp().defaultNow().onUpdateNow().notNull(),
   },
-  (table) => [index("recovery_codes_user_id_idx").on(table.userId)]
+  (table) => [index("recovery_codes_user_id_idx").on(table.userId)],
 );
 
 export const recoveryCodesRelations = relations(recoveryCodes, ({ one }) => ({

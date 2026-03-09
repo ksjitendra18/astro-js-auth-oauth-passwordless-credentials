@@ -11,7 +11,7 @@ export async function POST({ request, clientAddress, cookies }: APIContext) {
     const rateLimiter = new SlidingWindowRateLimiter(
       "auth:delete-account-request",
       60 * 60,
-      3
+      3,
     );
 
     const ratelimitResponse = await rateLimiter.checkLimit(clientAddress);
@@ -22,7 +22,7 @@ export async function POST({ request, clientAddress, cookies }: APIContext) {
           error: "rate_limit",
           message: "Too many requests. Please try again later.",
         },
-        { status: 429 }
+        { status: 429 },
       );
     }
 
@@ -35,7 +35,7 @@ export async function POST({ request, clientAddress, cookies }: APIContext) {
         { error: "authentication_error", message: "Log in" },
         {
           status: 401,
-        }
+        },
       );
     }
 
@@ -49,7 +49,7 @@ export async function POST({ request, clientAddress, cookies }: APIContext) {
           error: "validation_error",
           message: z.treeifyError(parsedData.error),
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -60,7 +60,7 @@ export async function POST({ request, clientAddress, cookies }: APIContext) {
           error: "invalid_request",
           message: "Invalid Request. Please try again later",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -73,7 +73,9 @@ export async function POST({ request, clientAddress, cookies }: APIContext) {
       accountDeleteMailResponse.verificationId,
       {
         path: "/",
-      }
+        httpOnly: true,
+        sameSite: "strict",
+      },
     );
 
     return Response.json(
@@ -81,7 +83,7 @@ export async function POST({ request, clientAddress, cookies }: APIContext) {
         message:
           "Email sent successfully. Please check your inbox and spam folder",
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (err) {
     console.error("Error while sending account deletion mail", err);
@@ -90,7 +92,7 @@ export async function POST({ request, clientAddress, cookies }: APIContext) {
         error: "server_error",
         message: "Internal server error Please try again later",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
