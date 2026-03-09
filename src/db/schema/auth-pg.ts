@@ -1,4 +1,3 @@
-import { relations, sql } from "drizzle-orm";
 import {
   pgTable,
   text,
@@ -32,14 +31,6 @@ export const users = pgTable("users", {
     .notNull(),
 });
 
-export const usersRelations = relations(users, ({ many, one }) => ({
-  sessions: many(sessions),
-  loginLogs: many(loginLogs),
-  passwords: one(passwords),
-  oauthProviders: many(oauthProviders),
-  recoveryCodes: many(recoveryCodes),
-}));
-
 export const passwords = pgTable(
   "passwords",
   {
@@ -63,13 +54,6 @@ export const passwords = pgTable(
   },
   (table) => [index("passwords_user_id_idx").on(table.userId)],
 );
-
-export const passwordRelations = relations(passwords, ({ one }) => ({
-  user: one(users, {
-    fields: [passwords.userId],
-    references: [users.id],
-  }),
-}));
 
 export const oauthProvidersEnum = pgEnum("oauth_providers_enum", [
   "github",
@@ -102,13 +86,6 @@ export const oauthProviders = pgTable(
   ],
 );
 
-export const oauthProviderRelations = relations(oauthProviders, ({ one }) => ({
-  user: one(users, {
-    fields: [oauthProviders.userId],
-    references: [users.id],
-  }),
-}));
-
 export const sessions = pgTable(
   "sessions",
   {
@@ -126,14 +103,6 @@ export const sessions = pgTable(
   },
   (table) => [index("session_user_id_idx").on(table.userId)],
 );
-
-export const sessionRelations = relations(sessions, ({ one }) => ({
-  user: one(users, {
-    fields: [sessions.userId],
-    references: [users.id],
-  }),
-  loginLog: one(loginLogs),
-}));
 
 export const allLoginProvidersEnum = pgEnum("all_login_providers_enum", [
   "github",
@@ -174,17 +143,6 @@ export const loginLogs = pgTable(
   (table) => [index("login_logs_user_id_idx").on(table.userId)],
 );
 
-export const loginLogsRelations = relations(loginLogs, ({ one }) => ({
-  user: one(users, {
-    fields: [loginLogs.userId],
-    references: [users.id],
-  }),
-  session: one(sessions, {
-    fields: [loginLogs.sessionId],
-    references: [sessions.id],
-  }),
-}));
-
 export const recoveryCodes = pgTable(
   "recovery_codes",
   {
@@ -207,10 +165,3 @@ export const recoveryCodes = pgTable(
   },
   (table) => [index("recovery_codes_user_id_idx").on(table.userId)],
 );
-
-export const recoveryCodesRelations = relations(recoveryCodes, ({ one }) => ({
-  user: one(users, {
-    fields: [recoveryCodes.userId],
-    references: [users.id],
-  }),
-}));
