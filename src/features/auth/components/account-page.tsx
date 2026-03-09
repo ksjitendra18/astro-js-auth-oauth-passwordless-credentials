@@ -31,26 +31,22 @@ export const AccountPage = ({
   const isPasswordLogin = !!passwords;
 
   const logs = loginLogs.sort((a) =>
-    a.sessionId === currentSessionId ? -1 : 1
+    a.sessionId === currentSessionId ? -1 : 1,
   );
   function capitalizeFirstWord(text: string) {
     return text.charAt(0).toUpperCase() + text.slice(1);
   }
 
-  const formatDate = (date: string) => {
-    const utcDate = new Date(`${date}Z`);
+  function formatDate(date: Date) {
     return new Intl.DateTimeFormat(undefined, {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "numeric",
-      minute: "numeric",
-      hour12: true,
-    }).format(new Date(utcDate));
-  };
+      dateStyle: "medium",
+      timeStyle: "short",
+      
+    }).format(date);
+  }
 
   const [revokingSessionId, setRevokingSessionId] = createSignal<string | null>(
-    null
+    null,
   );
 
   const revokeSession = async (sessionId: string) => {
@@ -296,7 +292,7 @@ export const AccountPage = ({
                   <td class="px-4 py-4 text-sm">
                     <div class="flex items-center gap-2">
                       <span>{`${log.os || ""} ${capitalizeFirstWord(
-                        log.device
+                        log.device,
                       )} ${log.browser || ""}`}</span>
                     </div>
                   </td>
@@ -305,16 +301,14 @@ export const AccountPage = ({
                   </td>
                   <td class="px-4 py-4 text-sm font-mono">{log.ip}</td>
                   <td class="px-4 py-4 text-sm">
-                    <span>
-                      {log.createdAt.toLocaleDateString() +
-                        " " +
-                        log.createdAt.toLocaleTimeString()}
-                    </span>
+                    <span>{formatDate(log.createdAt)}</span>
                   </td>
                   <td class="px-4 py-4 text-sm">
                     {currentSessionId !== log.sessionId ? (
                       <button
-                        disabled={revokingSessionId() !== null || revokingAllSessions()}
+                        disabled={
+                          revokingSessionId() !== null || revokingAllSessions()
+                        }
                         onClick={() => revokeSession(log.sessionId!)}
                         class="bg-red-700 text-white px-6 py-2 rounded-md font-medium cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                       >
@@ -341,8 +335,9 @@ export const AccountPage = ({
             <div class="bg-white rounded-lg border p-4 space-y-3">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                  <span class="font-medium">{`${log.os || ""
-                    } ${capitalizeFirstWord(log.device)}`}</span>
+                  <span class="font-medium">{`${
+                    log.os || ""
+                  } ${capitalizeFirstWord(log.device)}`}</span>
                 </div>
                 {currentSessionId === log.sessionId && (
                   <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
@@ -374,7 +369,9 @@ export const AccountPage = ({
 
               {currentSessionId !== log.sessionId && (
                 <button
-                  disabled={revokingSessionId() !== null || revokingAllSessions()}
+                  disabled={
+                    revokingSessionId() !== null || revokingAllSessions()
+                  }
                   onClick={() => revokeSession(log.sessionId!)}
                   class="w-full mt-2 text-red-500 hover:text-red-700 text-sm font-medium py-2 border border-red-500 rounded-md disabled:opacity-60 disabled:cursor-not-allowed"
                 >

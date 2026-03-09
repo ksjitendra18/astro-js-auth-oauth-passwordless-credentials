@@ -1,4 +1,3 @@
-import { relations } from "drizzle-orm";
 import {
   boolean,
   index,
@@ -31,14 +30,6 @@ export const users = mysqlTable("users", {
   updatedAt: timestamp().defaultNow().onUpdateNow().notNull(),
 });
 
-export const usersRelations = relations(users, ({ many, one }) => ({
-  sessions: many(sessions),
-  loginLogs: many(loginLogs),
-  passwords: one(passwords),
-  oauthProviders: many(oauthProviders),
-  recoveryCodes: many(recoveryCodes),
-}));
-
 export const passwords = mysqlTable(
   "passwords",
   {
@@ -59,13 +50,6 @@ export const passwords = mysqlTable(
   },
   (table) => [index("passwords_user_id_idx").on(table.userId)],
 );
-
-export const passwordRelations = relations(passwords, ({ one }) => ({
-  user: one(users, {
-    fields: [passwords.userId],
-    references: [users.id],
-  }),
-}));
 
 export const oauthProviders = mysqlTable(
   "oauth_providers",
@@ -93,13 +77,6 @@ export const oauthProviders = mysqlTable(
   ],
 );
 
-export const oauthProviderRelations = relations(oauthProviders, ({ one }) => ({
-  user: one(users, {
-    fields: [oauthProviders.userId],
-    references: [users.id],
-  }),
-}));
-
 export const sessions = mysqlTable(
   "sessions",
   {
@@ -117,14 +94,6 @@ export const sessions = mysqlTable(
   },
   (table) => [index("session_user_id_idx").on(table.userId)],
 );
-
-export const sessionRelations = relations(sessions, ({ one }) => ({
-  user: one(users, {
-    fields: [sessions.userId],
-    references: [users.id],
-  }),
-  loginLog: one(loginLogs),
-}));
 
 export const loginLogs = mysqlTable(
   "login_logs",
@@ -160,17 +129,6 @@ export const loginLogs = mysqlTable(
   (table) => [index("login_logs_user_id_idx").on(table.userId)],
 );
 
-export const loginLogsRelations = relations(loginLogs, ({ one }) => ({
-  user: one(users, {
-    fields: [loginLogs.userId],
-    references: [users.id],
-  }),
-  session: one(sessions, {
-    fields: [loginLogs.sessionId],
-    references: [sessions.id],
-  }),
-}));
-
 export const recoveryCodes = mysqlTable(
   "recovery_codes",
   {
@@ -190,10 +148,3 @@ export const recoveryCodes = mysqlTable(
   },
   (table) => [index("recovery_codes_user_id_idx").on(table.userId)],
 );
-
-export const recoveryCodesRelations = relations(recoveryCodes, ({ one }) => ({
-  user: one(users, {
-    fields: [recoveryCodes.userId],
-    references: [users.id],
-  }),
-}));

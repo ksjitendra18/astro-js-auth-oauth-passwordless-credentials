@@ -1,4 +1,4 @@
-import { relations, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { v7 as uuidv7 } from "uuid";
 import {
@@ -19,7 +19,6 @@ export const users = sqliteTable("users", {
   twoFactorSecret: text(),
   isBanned: integer({ mode: "boolean" }).default(false),
   banReason: text(),
-  // isDeleted: integer({ mode: "boolean" }).default(false),
   deletedAt: integer(),
   createdAt: integer({ mode: "timestamp" })
     .default(sql`(unixepoch())`)
@@ -29,14 +28,6 @@ export const users = sqliteTable("users", {
     // .$onUpdateFn(() => sql`(unixepoch())`), // THIS IS GIVING ERROR
     .$onUpdateFn(() => new Date()),
 });
-
-export const usersRelations = relations(users, ({ many, one }) => ({
-  sessions: many(sessions),
-  loginLogs: many(loginLogs),
-  passwords: one(passwords),
-  oauthProviders: many(oauthProviders),
-  recoveryCodes: many(recoveryCodes),
-}));
 
 export const passwords = sqliteTable(
   "passwords",
@@ -60,15 +51,8 @@ export const passwords = sqliteTable(
       .default(sql`(unixepoch())`)
       .$onUpdateFn(() => new Date()),
   },
-  (table) => [index("passwords_user_id_idx").on(table.userId)]
+  (table) => [index("passwords_user_id_idx").on(table.userId)],
 );
-
-export const passwordRelations = relations(passwords, ({ one }) => ({
-  user: one(users, {
-    fields: [passwords.userId],
-    references: [users.id],
-  }),
-}));
 
 export const oauthProviders = sqliteTable(
   "oauth_providers",
@@ -93,17 +77,10 @@ export const oauthProviders = sqliteTable(
     index("oauth_providers_user_id_idx").on(table.userId),
     index("oauth_providers_provider_user_id_strategy_idx").on(
       table.providerUserId,
-      table.strategy
+      table.strategy,
     ),
-  ]
+  ],
 );
-
-export const oauthProviderRelations = relations(oauthProviders, ({ one }) => ({
-  user: one(users, {
-    fields: [oauthProviders.userId],
-    references: [users.id],
-  }),
-}));
 
 export const sessions = sqliteTable(
   "sessions",
@@ -122,16 +99,8 @@ export const sessions = sqliteTable(
       .default(sql`(unixepoch())`)
       .notNull(),
   },
-  (table) => [index("session_user_id_idx").on(table.userId)]
+  (table) => [index("session_user_id_idx").on(table.userId)],
 );
-
-export const sessionRelations = relations(sessions, ({ one }) => ({
-  user: one(users, {
-    fields: [sessions.userId],
-    references: [users.id],
-  }),
-  loginLog: one(loginLogs),
-}));
 
 export const loginLogs = sqliteTable(
   "login_logs",
@@ -166,19 +135,8 @@ export const loginLogs = sqliteTable(
       .default(sql`(unixepoch())`)
       .notNull(),
   },
-  (table) => [index("login_logs_user_id_idx").on(table.userId)]
+  (table) => [index("login_logs_user_id_idx").on(table.userId)],
 );
-
-export const loginLogsRelations = relations(loginLogs, ({ one }) => ({
-  user: one(users, {
-    fields: [loginLogs.userId],
-    references: [users.id],
-  }),
-  session: one(sessions, {
-    fields: [loginLogs.sessionId],
-    references: [sessions.id],
-  }),
-}));
 
 export const recoveryCodes = sqliteTable(
   "recovery_codes",
@@ -201,12 +159,5 @@ export const recoveryCodes = sqliteTable(
       .default(sql`(unixepoch())`)
       .$onUpdateFn(() => new Date()),
   },
-  (table) => [index("recovery_codes_user_id_idx").on(table.userId)]
+  (table) => [index("recovery_codes_user_id_idx").on(table.userId)],
 );
-
-export const recoveryCodesRelations = relations(recoveryCodes, ({ one }) => ({
-  user: one(users, {
-    fields: [recoveryCodes.userId],
-    references: [users.id],
-  }),
-}));

@@ -1,6 +1,6 @@
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "../../../db/index";
-import { loginLogs, oauthProviders, users } from "../../../db/schema";
+import { oauthProviders, users } from "../../../db/schema";
 import type { oauthProvidersEnum } from "../constants";
 import { normalizeEmail } from "../utils";
 
@@ -58,14 +58,16 @@ export const getUserByEmail = async ({
       emailVerified: true,
       twoFactorEnabled: true,
     },
-    where: and(
-      eq(
-        users[shouldNormalizeEmail ? "normalizedEmail" : "email"],
-        formattedEmail
-      ),
-      eq(users.isBanned, false),
-      isNull(users.deletedAt)
-    ),
+    where: {
+      isBanned: false,
+      deletedAt: {
+        isNull: true,
+      },
+
+      ...(shouldNormalizeEmail
+        ? { normalizedEmail: formattedEmail }
+        : { email: formattedEmail }),
+    },
   });
 };
 
@@ -77,11 +79,13 @@ export const getUserById = async (id: string) => {
       twoFactorEnabled: true,
       twoFactorSecret: true,
     },
-    where: and(
-      eq(users.id, id),
-      eq(users.isBanned, false),
-      isNull(users.deletedAt)
-    ),
+    where: {
+      id,
+      isBanned: false,
+      deletedAt: {
+        isNull: true,
+      },
+    },
   });
 };
 
@@ -96,11 +100,13 @@ export const getOauthUserData = async ({
 }) => {
   const normalizedEmail = normalizeEmail(email);
   const userData = await db.query.users.findFirst({
-    where: and(
-      eq(users.normalizedEmail, normalizedEmail),
-      eq(users.isBanned, false),
-      isNull(users.deletedAt)
-    ),
+    where: {
+      normalizedEmail,
+      isBanned: false,
+      deletedAt: {
+        isNull: true,
+      },
+    },
     columns: {
       id: true,
       email: true,
@@ -108,10 +114,10 @@ export const getOauthUserData = async ({
     },
     with: {
       oauthProviders: {
-        where: and(
-          eq(oauthProviders.providerUserId, String(providerId)),
-          eq(oauthProviders.strategy, strategy)
-        ),
+        where: {
+          providerUserId: String(providerId),
+          strategy,
+        },
         columns: {
           email: true,
         },
@@ -120,10 +126,10 @@ export const getOauthUserData = async ({
   });
 
   const oauthData = await db.query.oauthProviders.findFirst({
-    where: and(
-      eq(oauthProviders.providerUserId, String(providerId)),
-      eq(oauthProviders.strategy, strategy)
-    ),
+    where: {
+      providerUserId: String(providerId),
+      strategy,
+    },
     with: {
       user: {
         columns: {
@@ -185,14 +191,16 @@ export const updateEmailVerificationStatus = async (userId: string) => {
     .where(eq(users.id, userId));
 };
 
-export const getUserProfile = async (usersId: string) => {
+export const getUserProfile = async (userId: string) => {
   return await db.query.users.findFirst({
     columns: {
       id: true,
       email: true,
       fullName: true,
     },
-    where: eq(users.id, usersId),
+    where: {
+      id: userId,
+    },
   });
 };
 
@@ -228,7 +236,9 @@ export const updateUserEmail = async ({
 
 export const getUserAccountInfo = async (userId: string) => {
   return await db.query.users.findFirst({
-    where: eq(users.id, userId),
+    where: {
+      id: userId,
+    },
     columns: {
       id: true,
       fullName: true,
@@ -258,7 +268,9 @@ export const getUserAccountInfo = async (userId: string) => {
           userId: true,
           sessionId: true,
         },
-        orderBy: desc(loginLogs.createdAt),
+        orderBy: {
+          createdAt: "desc",
+        },
       },
     },
   });

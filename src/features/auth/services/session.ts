@@ -47,14 +47,14 @@ export const getSessionInfo = async (sessionToken: string | undefined) => {
 
     const decryptedSessionId = aesDecrypt(
       sessionToken,
-      EncryptionPurpose.SESSION_COOKIE_SECRET
+      EncryptionPurpose.SESSION_COOKIE_SECRET,
     );
 
     const cachedSession = await redis.get(decryptedSessionId);
     if (cachedSession) {
       const decryptedSession = aesDecrypt(
         cachedSession,
-        EncryptionPurpose.SESSION_COOKIE_SECRET
+        EncryptionPurpose.SESSION_COOKIE_SECRET,
       );
       await extendTtl({
         key: decryptedSessionId,
@@ -64,10 +64,12 @@ export const getSessionInfo = async (sessionToken: string | undefined) => {
     }
 
     const sessionInfo = await db.query.sessions.findFirst({
-      where: and(
-        eq(sessions.id, decryptedSessionId),
-        gte(sessions.expiresAt, new Date().getTime())
-      ),
+      where: {
+        id: decryptedSessionId,
+        expiresAt: {
+          gte: new Date().getTime(),
+        },
+      },
       columns: {
         id: true,
         expiresAt: true,
@@ -87,7 +89,7 @@ export const getSessionInfo = async (sessionToken: string | undefined) => {
 
     const encryptedSession = aesEncrypt(
       JSON.stringify(sessionInfo),
-      EncryptionPurpose.SESSION_COOKIE_SECRET
+      EncryptionPurpose.SESSION_COOKIE_SECRET,
     );
 
     await redis.set(decryptedSessionId, encryptedSession, "EX", 60 * 5);
@@ -130,7 +132,7 @@ export const deleteSessionByUserId = async ({
     return await trx
       .delete(sessions)
       .where(
-        and(ne(sessions.id, currentSessionId!), eq(sessions.userId, userId))
+        and(ne(sessions.id, currentSessionId!), eq(sessions.userId, userId)),
       );
   } else {
     return await trx.delete(sessions).where(eq(sessions.userId, userId));
@@ -153,7 +155,7 @@ export const extendSession = async ({
 
   if (expiresAt - currentTime <= twoDaysInMs) {
     const newExpiresAt = new Date(
-      currentTime + 14 * 24 * 60 * 60 * 1000
+      currentTime + 14 * 24 * 60 * 60 * 1000,
     ).getTime();
 
     try {

@@ -1,9 +1,15 @@
 # Changelog
 
+## 9th March 2026
+
+Move to new drizzle orm beta relations
+If you are on drizzle stable channel and want old relations code kindly refer to `drizzle-old` branch
+
 ## 8th March 2026
 
 Updated packages
 Change in logout endpoint from get to POST
+Changes is auth-pg schema use native uuid instead of text
 
 ## 22th April 2025
 

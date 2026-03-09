@@ -1,15 +1,15 @@
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db, type Transaction } from "../../../db";
 import { recoveryCodes } from "../../../db/schema";
-import { generateRecoveryCode } from "../../../lib/random-string";
 import { aesDecrypt, aesEncrypt, EncryptionPurpose } from "../../../lib/aes";
+import { generateRecoveryCode } from "../../../lib/random-string";
 
 export const getRecoveryCodes = async (userId: string) => {
   return await db.query.recoveryCodes.findMany({
-    where: and(
-      eq(recoveryCodes.userId, userId),
-      eq(recoveryCodes.isUsed, false)
-    ),
+    where: {
+      userId,
+      isUsed: false,
+    },
   });
 };
 
@@ -79,7 +79,7 @@ export const validateRecoveryCode = async ({
   for (const recoveryCode of recoveryCodes) {
     const decryptedCode = aesDecrypt(
       recoveryCode.code,
-      EncryptionPurpose.RECOVERY_CODE
+      EncryptionPurpose.RECOVERY_CODE,
     );
 
     if (decryptedCode === enteredCode) {

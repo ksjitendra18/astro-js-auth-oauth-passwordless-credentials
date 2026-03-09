@@ -44,7 +44,7 @@ export const createPassword = async ({
 
 export const getUserPassword = async ({ userId }: { userId: string }) => {
   return await db.query.passwords.findFirst({
-    where: eq(passwords.userId, userId),
+    where: { userId },
   });
 };
 
@@ -63,7 +63,7 @@ export const udpatePasswordAndDeleteSessions = async ({
 }: UdpatePasswordAndDeleteSessionsParams) => {
   if (keepCurrentSession && !currentSessionId) {
     throw new Error(
-      "currentSessionId is required when keepCurrentSession is true"
+      "currentSessionId is required when keepCurrentSession is true",
     );
   }
 
@@ -73,8 +73,13 @@ export const udpatePasswordAndDeleteSessions = async ({
     // Fetch session IDs before deleting so we can clear them from cache
     const userSessions = await db.query.sessions.findMany({
       where: keepCurrentSession
-        ? and(ne(sessions.id, currentSessionId!), eq(sessions.userId, userId))
-        : eq(sessions.userId, userId),
+        ? {
+            userId,
+            id: { ne: currentSessionId },
+          }
+        : {
+            userId,
+          },
       columns: { id: true },
     });
     const sessionIdsToDelete = userSessions.map((s) => s.id);
@@ -89,7 +94,10 @@ export const udpatePasswordAndDeleteSessions = async ({
         await trx
           .delete(sessions)
           .where(
-            and(ne(sessions.id, currentSessionId!), eq(sessions.userId, userId))
+            and(
+              ne(sessions.id, currentSessionId!),
+              eq(sessions.userId, userId),
+            ),
           );
       } else {
         await trx.delete(sessions).where(eq(sessions.userId, userId));
