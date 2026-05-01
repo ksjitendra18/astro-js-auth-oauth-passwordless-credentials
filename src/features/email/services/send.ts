@@ -27,7 +27,7 @@ export const sendMail = async ({ from, to, subject, htmlBody }: SendEmail) => {
 
     return { ok: res.ok, staus: res.status, message: res.statusText };
   } catch (error) {
-    console.log("Eror sending email", error);
+    console.log("Error sending email", error);
     throw new Error("Error sending email");
   }
 };

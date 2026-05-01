@@ -61,6 +61,11 @@ export const sendMagicLink = async ({
       await redis.set(verificationId, `${token}:${email}`, "EX", 7200);
       return { verificationId };
     } else {
+      console.log(
+        "error while sending magic link mail",
+        res.staus,
+        res.message,
+      );
       throw new Error("Error while sending mail");
     }
   } catch (error) {

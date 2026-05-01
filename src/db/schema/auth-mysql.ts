@@ -2,7 +2,7 @@ import {
   boolean,
   index,
   int,
-  mysqlTable,
+  snakeCase,
   text,
   timestamp,
 } from "drizzle-orm/mysql-core";
@@ -12,7 +12,7 @@ import {
   oauthProvidersEnum,
 } from "../../features/auth/constants";
 
-export const users = mysqlTable("users", {
+export const users = snakeCase.table("users", {
   id: text()
     .$default(() => uuidv7())
     .primaryKey(),
@@ -30,7 +30,7 @@ export const users = mysqlTable("users", {
   updatedAt: timestamp().defaultNow().onUpdateNow().notNull(),
 });
 
-export const passwords = mysqlTable(
+export const passwords = snakeCase.table(
   "passwords",
   {
     id: text()
@@ -51,7 +51,7 @@ export const passwords = mysqlTable(
   (table) => [index("passwords_user_id_idx").on(table.userId)],
 );
 
-export const oauthProviders = mysqlTable(
+export const oauthProviders = snakeCase.table(
   "oauth_providers",
   {
     id: text()
@@ -77,7 +77,7 @@ export const oauthProviders = mysqlTable(
   ],
 );
 
-export const sessions = mysqlTable(
+export const sessions = snakeCase.table(
   "sessions",
   {
     id: text()
@@ -95,7 +95,7 @@ export const sessions = mysqlTable(
   (table) => [index("session_user_id_idx").on(table.userId)],
 );
 
-export const loginLogs = mysqlTable(
+export const loginLogs = snakeCase.table(
   "login_logs",
   {
     id: text()
@@ -129,7 +129,7 @@ export const loginLogs = mysqlTable(
   (table) => [index("login_logs_user_id_idx").on(table.userId)],
 );
 
-export const recoveryCodes = mysqlTable(
+export const recoveryCodes = snakeCase.table(
   "recovery_codes",
   {
     id: text()

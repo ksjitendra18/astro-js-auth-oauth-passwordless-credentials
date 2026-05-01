@@ -20,12 +20,10 @@ export const db = drizzle({
   },
   relations,
   schema,
-  casing: "snake_case",
 });
 
 type Schema = typeof schema;
 type Relation = typeof relations;
-
 
 export type Transaction = SQLiteTransaction<
   "async",

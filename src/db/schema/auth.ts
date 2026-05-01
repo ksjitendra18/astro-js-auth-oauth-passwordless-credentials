@@ -1,12 +1,12 @@
 import { sql } from "drizzle-orm";
-import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { index, integer, snakeCase, text } from "drizzle-orm/sqlite-core";
 import { v7 as uuidv7 } from "uuid";
 import {
   allLoginProvidersEnum,
   oauthProvidersEnum,
 } from "../../features/auth/constants";
 
-export const users = sqliteTable("users", {
+export const users = snakeCase.table("users", {
   id: text()
     .$default(() => uuidv7())
     .primaryKey(),
@@ -29,7 +29,7 @@ export const users = sqliteTable("users", {
     .$onUpdateFn(() => new Date()),
 });
 
-export const passwords = sqliteTable(
+export const passwords = snakeCase.table(
   "passwords",
   {
     id: text()
@@ -54,7 +54,7 @@ export const passwords = sqliteTable(
   (table) => [index("passwords_user_id_idx").on(table.userId)],
 );
 
-export const oauthProviders = sqliteTable(
+export const oauthProviders = snakeCase.table(
   "oauth_providers",
   {
     id: text()
@@ -82,7 +82,7 @@ export const oauthProviders = sqliteTable(
   ],
 );
 
-export const sessions = sqliteTable(
+export const sessions = snakeCase.table(
   "sessions",
   {
     id: text()
@@ -102,7 +102,7 @@ export const sessions = sqliteTable(
   (table) => [index("session_user_id_idx").on(table.userId)],
 );
 
-export const loginLogs = sqliteTable(
+export const loginLogs = snakeCase.table(
   "login_logs",
   {
     id: text()
@@ -138,7 +138,7 @@ export const loginLogs = sqliteTable(
   (table) => [index("login_logs_user_id_idx").on(table.userId)],
 );
 
-export const recoveryCodes = sqliteTable(
+export const recoveryCodes = snakeCase.table(
   "recovery_codes",
   {
     id: text()

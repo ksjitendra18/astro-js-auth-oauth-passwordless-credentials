@@ -1,5 +1,4 @@
 import {
-  pgTable,
   text,
   boolean,
   timestamp,
@@ -7,10 +6,11 @@ import {
   integer,
   pgEnum,
   uuid,
+  snakeCase,
 } from "drizzle-orm/pg-core";
 import { v7 as uuidv7 } from "uuid";
 
-export const users = pgTable("users", {
+export const users = snakeCase.table("users", {
   id: uuid()
     .$default(() => uuidv7())
     .primaryKey(),
@@ -31,7 +31,7 @@ export const users = pgTable("users", {
     .notNull(),
 });
 
-export const passwords = pgTable(
+export const passwords = snakeCase.table(
   "passwords",
   {
     id: uuid()
@@ -60,7 +60,7 @@ export const oauthProvidersEnum = pgEnum("oauth_providers_enum", [
   "google",
 ]);
 
-export const oauthProviders = pgTable(
+export const oauthProviders = snakeCase.table(
   "oauth_providers",
   {
     id: uuid()
@@ -86,7 +86,7 @@ export const oauthProviders = pgTable(
   ],
 );
 
-export const sessions = pgTable(
+export const sessions = snakeCase.table(
   "sessions",
   {
     id: uuid()
@@ -111,7 +111,7 @@ export const allLoginProvidersEnum = pgEnum("all_login_providers_enum", [
   "magic_link",
 ]);
 
-export const loginLogs = pgTable(
+export const loginLogs = snakeCase.table(
   "login_logs",
   {
     id: uuid()
@@ -143,7 +143,7 @@ export const loginLogs = pgTable(
   (table) => [index("login_logs_user_id_idx").on(table.userId)],
 );
 
-export const recoveryCodes = pgTable(
+export const recoveryCodes = snakeCase.table(
   "recovery_codes",
   {
     id: uuid()
